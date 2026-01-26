@@ -26,7 +26,6 @@ import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.Buffer;
 
 public class FileUtils implements PCMProcessor {
 
@@ -36,10 +35,6 @@ public class FileUtils implements PCMProcessor {
 
     public String getSongTitle(File file) {
         return file.getName().replace(".flac", "").substring(file.getName().indexOf(".")+1, file.getName().replace(".flac", "").lastIndexOf("-")).trim();
-    }
-
-    public String getSongAlbumTitle(File file) {
-        return new File(file.getParent()).getName();
     }
 
     public String getSongArtist(File file) {
@@ -94,8 +89,6 @@ public class FileUtils implements PCMProcessor {
             return null;
         }
     }
-
-    public void saveObject(Object obj, File file) {}
 
     public BufferedImage getAlbumImage(File file, int w, int h) {
         try {
@@ -173,7 +166,7 @@ public class FileUtils implements PCMProcessor {
         try {
             wav.writeHeader(info);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Couldn't process stream info: " + e);
         }
     }
 
@@ -208,7 +201,7 @@ public class FileUtils implements PCMProcessor {
             Runtime.getRuntime().exec("explorer /select, " + directoryPath);
 
         } catch (IOException e){
-            e.printStackTrace();
+            System.err.println("Couldn't open directory explorer: " + e);
         }
     }
 

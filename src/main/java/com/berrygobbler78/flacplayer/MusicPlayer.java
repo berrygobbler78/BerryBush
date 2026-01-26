@@ -3,8 +3,6 @@ package com.berrygobbler78.flacplayer;
 import java.io.File;
 import java.util.*;
 
-import com.berrygobbler78.flacplayer.constants.ParentType;
-import com.berrygobbler78.flacplayer.constants.RepeatStatus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.media.Media;
@@ -15,7 +13,7 @@ public final class MusicPlayer {
 
     private File directory;
     private String directoryPath;
-    private String wavPath = "src/main/resources/com/berrygobbler78/flacplayer/cache/temp.wav";
+    private final String wavPath = "src/main/resources/com/berrygobbler78/flacplayer/cache/temp.wav";
 
     private ArrayList<File> songsList;
 
@@ -109,7 +107,7 @@ public final class MusicPlayer {
         }
 
         if(shuffleSelected) {
-            ArrayList<Integer> temp = new ArrayList<Integer>();
+            ArrayList<Integer> temp = new ArrayList<>();
 
             for (int i :  nextSongsQueue) {
 //                temp.add(Random.nextInt(3), i);

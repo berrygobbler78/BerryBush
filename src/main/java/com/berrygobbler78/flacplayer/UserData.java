@@ -1,6 +1,5 @@
 package com.berrygobbler78.flacplayer;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class UserData implements Serializable {

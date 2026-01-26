@@ -1,4 +1,4 @@
-package com.berrygobbler78.flacplayer.constants;
+package com.berrygobbler78.flacplayer;
 
 public enum ParentType {
     ALBUM,

@@ -2,7 +2,6 @@ package com.berrygobbler78.flacplayer;
 
 import java.io.*;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,7 +20,7 @@ public class App extends Application {
     public static MusicPlayer musicPlayer;
     public static UserData userData;
 
-    private static File userDataFile = new File("src/main/resources/com/berrygobbler78/flacplayer/cache/UserData.ser");
+    private static final File userDataFile = new File("src/main/resources/com/berrygobbler78/flacplayer/cache/UserData.ser");
 
     private static Stage primaryStage;
 

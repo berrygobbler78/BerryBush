@@ -16,6 +16,8 @@ The intention for this application is to be able to rip flac files from your cd 
 - [ ] In depth song settings (Volume, playback speed, pitch?)
 - [ ] Playlists
 - [ ] Search feature
+- [ ] Fix the window
+- [ ] Make everything resize nicely
 
 ### Completed  ✓
 - [x] Ain't anything here 
