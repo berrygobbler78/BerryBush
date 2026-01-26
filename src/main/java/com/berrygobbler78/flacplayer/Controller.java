@@ -306,7 +306,11 @@ public class Controller implements  Initializable {
 
     @FXML
     public void exit() {
-        App.exit();
+        try {
+            App.exit();
+        } catch (InterruptedException e) {
+            System.err.println("Couldn't exit with error: " + e.getMessage());
+        }
     }
 
     @FXML

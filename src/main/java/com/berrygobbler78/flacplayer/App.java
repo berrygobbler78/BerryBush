@@ -2,6 +2,7 @@ package com.berrygobbler78.flacplayer;
 
 import java.io.*;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -26,6 +27,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException, ClassNotFoundException {
+        deleteTempFile();
+
         fileUtils = new FileUtils();
         musicPlayer = new MusicPlayer();
 
@@ -67,6 +70,28 @@ public class App extends Application {
         musicPlayer.setController(fxmlLoader.getController());
     }
 
+    static void deleteTempFile() {
+        try {
+            File tempFile = new File("src/main/resources/com/berrygobbler78/flacplayer/cache/temp.wav");
+
+            if(tempFile.exists()) {
+                try {
+                    musicPlayer.closeMediaPlayer();
+                } catch (Exception e) {
+                    System.out.println("No media player to close");
+                }
+                if(tempFile.delete()) {
+                    System.out.println("Deleted temp file");
+                } else {
+
+                    System.out.println("Failed to delete temp file");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("No temp file to delete!");
+        }
+    }
+
     static void main(String[] args) {
         launch();
     }
@@ -91,7 +116,8 @@ public class App extends Application {
         primaryStage.setIconified(true);
     }
 
-    public static void exit() {
+    public static void exit() throws InterruptedException {
+        deleteTempFile();
         System.exit(0);
     }
 

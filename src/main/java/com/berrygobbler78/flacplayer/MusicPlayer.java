@@ -258,6 +258,10 @@ public final class MusicPlayer {
         }
     }
 
+    public void closeMediaPlayer() {
+        mediaPlayer.dispose();
+    }
+
     public boolean isPlaying() {
         return mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
     }
