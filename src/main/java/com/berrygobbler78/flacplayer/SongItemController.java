@@ -1,5 +1,6 @@
 package com.berrygobbler78.flacplayer;
 
+import com.berrygobbler78.flacplayer.constants.ParentType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -46,7 +47,7 @@ public class SongItemController implements Initializable {
 
     @FXML
     private void playSong() {
-        musicPlayer.setDirectoryPath(songFile.getParent(), "album");
+        musicPlayer.setDirectoryPath(songFile.getParent(), ParentType.ALBUM);
         musicPlayer.setCurrentSongIndex(Integer.parseInt(songNumberLabel.getText())-1);
         controller.setCurrentPlayPauseImageViewPaused(false);
         musicPlayer.play();

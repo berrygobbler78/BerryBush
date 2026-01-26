@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
+import com.berrygobbler78.flacplayer.constants.RepeatStatus;
 import com.jfoenix.controls.JFXSlider;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -77,33 +78,16 @@ public class Controller implements  Initializable {
     private double x;
     private double y;
 
-    private TreeItem<String> previousItem = null;
+    private final FileFilter folderFilter = File::isDirectory;
 
-    private String previewArtist;
-    private File previewAlbum;
-
-    Font font = new Font(24);
-
-    private FileFilter folderFilter = new FileFilter() {
-        public boolean accept(File f)
-        {
-            return f.isDirectory();
-        }
-    };
-
-    private FileFilter albumArt = new FileFilter() {
+    private final FileFilter albumArt = new FileFilter() {
         public boolean accept(File f)
         {
             return f.getName().equals("albumArtImage.png") || f.getName().equals("albumArtIcon.png");
         }
     };
 
-    private FileFilter flacFilter = new FileFilter() {
-        public boolean accept(File f)
-        {
-            return f.getName().endsWith("flac");
-        }
-    };
+    private final FileFilter flacFilter = f -> f.getName().endsWith("flac");
 
     boolean paused = true;
 
@@ -123,28 +107,15 @@ public class Controller implements  Initializable {
 
 
 //        DoubleClick check
-        treeView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if(event.getButton().equals(MouseButton.PRIMARY)){
-                    if(event.getClickCount() == 2){
-                        selectAlbum();
-                    }
+        treeView.setOnMouseClicked(event -> {
+            if(event.getButton().equals(MouseButton.PRIMARY)){
+                if(event.getClickCount() == 2){
+                    selectAlbum();
                 }
             }
         });
 
-        songProgressSlider.setValueFactory(new Callback<JFXSlider, StringBinding>() {
-            @Override
-            public StringBinding call(JFXSlider arg0) {
-                return Bindings.createStringBinding(new java.util.concurrent.Callable<String>(){
-                    @Override
-                    public String call() throws Exception {
-                        return "";
-                    }
-                }, songProgressSlider.valueProperty());
-            }
-        });
+        songProgressSlider.setValueFactory(arg0 -> Bindings.createStringBinding(() -> "", songProgressSlider.valueProperty()));
 
 
         songProgressSlider.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::updateSongPos);
@@ -158,10 +129,6 @@ public class Controller implements  Initializable {
 
     public void setSongProgressSliderPos(int currentSongDuration, int totalSongDuration) {
         songProgressSlider.setValue((double) currentSongDuration /totalSongDuration * 100 + 0.00001);
-    }
-
-    private Controller getController() {
-        return this;
     }
 
     @FXML
@@ -184,43 +151,35 @@ public class Controller implements  Initializable {
     }
 
     public void setTotTrackTime(int sec) {
+        this.totTrackTime.setText(formatTime(sec));
+    }
+
+    private String formatTime(int sec) {
         int min = sec / 60;
         String text;
         if(min < 10){
-            text = "0" + String.valueOf(min);
+            text = "0" + min;
         } else {
             text = String.valueOf(min);
         }
 
         if((sec % 60) < 10){
-            text = text + ":0" + String.valueOf(sec % 60);
+            text = text + ":0" + sec % 60;
         } else {
-            text = text + ":" + String.valueOf(sec % 60);
+            text = text + ":" + sec % 60;
         }
-        this.totTrackTime.setText(text);
+
+        return text;
     }
 
     public void setCurrentTrackTime(int sec) {
-        int min = sec / 60;
-        String text;
-        if(min < 10){
-            text = "0" + String.valueOf(min);
-        } else {
-            text = String.valueOf(min);
-        }
-
-        if((sec % 60) < 10){
-            text = text + ":0" + String.valueOf(sec % 60);
-        } else {
-            text = text + ":" + String.valueOf(sec % 60);
-        }
-        this.currentTrackTime.setText(text);
+        this.currentTrackTime.setText(formatTime(sec));
     }
 
     private void generateCache() {
         for (File artistFolder : Objects.requireNonNull(new File(App.userData.getRootDirectoryPath()).listFiles(folderFilter))) {
             for (File albumFolder : Objects.requireNonNull(artistFolder.listFiles(folderFilter))) {
-                if (albumFolder.listFiles(albumArt).length == 0) {
+                if (Objects.requireNonNull(albumFolder.listFiles(albumArt)).length == 0) {
                     try {
 
                         File albumArtImage = new File(albumFolder, "albumArtImage.png");
@@ -287,7 +246,6 @@ public class Controller implements  Initializable {
         File albumFile = new File(App.userData.getRootDirectoryPath() + "\\" + selectedItem.getParent().getValue() + "\\" + selectedItem.getValue());
 
         if (new File(albumFile.getParent()).getName().equals(treeView.getRoot().getValue()) ) {
-
             operationAvailable = false;
         }
 
@@ -353,15 +311,13 @@ public class Controller implements  Initializable {
 
     @FXML
     public void playPauseMedia() {
-        if (paused) {;
+        if (paused) {
             musicPlayer.play();
-            setCurrentPlayPauseImageViewPaused(!paused);
-            paused = !paused;
         } else {
             musicPlayer.pause();
-            setCurrentPlayPauseImageViewPaused(!paused);
-            paused = !paused;
         }
+        paused = !paused;
+        setCurrentPlayPauseImageViewPaused(paused);
     }
 
     public void setCurrentPlayPauseImageViewPaused(Boolean paused) {
@@ -411,17 +367,19 @@ public class Controller implements  Initializable {
     @FXML
     public void repeatCycle() {
         repeatStatus = (repeatStatus +1) % 3;
-        musicPlayer.setRepeatStatus(repeatStatus);
 
         switch(repeatStatus) {
             case 0:
                 repeatImageView.setImage(repeatUnselectedImage);
+                musicPlayer.setRepeatStatus(RepeatStatus.OFF);
                 break;
             case 1:
                 repeatImageView.setImage(repeatSelectedImage);
+                musicPlayer.setRepeatStatus(RepeatStatus.REPEAT_ALL);
                 break;
             case 2:
                 repeatImageView.setImage(repeatOneSelectedImage);
+                musicPlayer.setRepeatStatus(RepeatStatus.OFF);
                 break;
         }
     }
@@ -455,10 +413,7 @@ public class Controller implements  Initializable {
     public void pickDirectory() {
         File selectedDirectory = fileUtils.directoryChooser(new Stage(), "Pick a Directory", new File(App.userData.getRootDirectoryPath()).getParent());
         App.userData.setRootDirectoryPath(selectedDirectory.getAbsolutePath());
-        if (selectedDirectory != null) {
-            fileUtils.changeDirectoryPath(selectedDirectory.getAbsolutePath());
-            refreshTreeView();
-        }
+        refreshTreeView();
     }
 
 

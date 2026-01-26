@@ -3,6 +3,8 @@ package com.berrygobbler78.flacplayer;
 import java.io.File;
 import java.util.*;
 
+import com.berrygobbler78.flacplayer.constants.ParentType;
+import com.berrygobbler78.flacplayer.constants.RepeatStatus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.media.Media;
@@ -13,6 +15,7 @@ public final class MusicPlayer {
 
     private File directory;
     private String directoryPath;
+    private String wavPath = "src/main/resources/com/berrygobbler78/flacplayer/cache/temp.wav";
 
     private ArrayList<File> songsList;
 
@@ -29,15 +32,15 @@ public final class MusicPlayer {
 
     private boolean shuffleSelected = false;
 
-    private String parentType;
-
     private Controller controller;
 
     private MediaPlayer mediaPlayer;
 
-    Timeline songTimeline;
+    private Timeline songTimeline;
 
-    String wavPath = "src/main/resources/com/berrygobbler78/flacplayer/cache/temp.wav";
+    private ParentType parentType;
+    private RepeatStatus repeatStatus = RepeatStatus.OFF;
+
 
     public MusicPlayer() {
         fileUtils = App.fileUtils;
@@ -57,17 +60,17 @@ public final class MusicPlayer {
         loadSong(currentSongIndex);
     }
 
-    public void setDirectoryPath(String directoryPath, String type) {
+    public void setDirectoryPath(String directoryPath, ParentType parentType) {
         System.out.println(directoryPath);
         this.directoryPath = directoryPath;
 
-        switch (type) {
-            case "album":
-                this.parentType = "album";
+        switch (parentType) {
+            case ALBUM:
+                parentType = ParentType.ALBUM;
                 refreshAlbumSongList();
                 break;
-            case "playlist":
-                this.parentType = "playlist";
+            case PLAYLIST:
+                parentType = parentType.PLAYLIST;
                 break;
             default:
                 System.err.println("Invalid parent type");
@@ -227,23 +230,19 @@ public final class MusicPlayer {
         }
     }
 
-    public void setRepeatStatus(int repeatStatus) {
+    public void setRepeatStatus(RepeatStatus repeatStatus) {
         switch(repeatStatus) {
-            case 0:
+            case OFF:
                 repeatAllSelected = false;
                 repeatOneSelected = false;
                 break;
-            case 1:
+            case REPEAT_ALL:
                 repeatAllSelected = true;
                 repeatOneSelected = false;
                 break;
-            case 2:
+            case REPEAT_ONE:
                 repeatAllSelected = false;
                 repeatOneSelected = true;
-                break;
-            default:
-                repeatAllSelected = false;
-                System.err.println("Invalid repeat status");
                 break;
         }
     }
@@ -251,10 +250,10 @@ public final class MusicPlayer {
     public void setShuffleStatus(boolean shuffleStatus) {
         shuffleSelected = shuffleStatus;
         switch (parentType) {
-            case "album":
+            case ALBUM:
                 refreshAlbumSongQueue();
                 break;
-            case "playlist":
+            case PLAYLIST:
                 break;
         }
     }
