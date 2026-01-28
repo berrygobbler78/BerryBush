@@ -211,7 +211,7 @@ public class Controller implements  Initializable {
                     File albumArtIcon = new File(albumFile, "albumArtIcon.png");
                     albumItem = new TreeItem<>(albumFile.getName(), new ImageView(new Image(albumArtIcon.toURI().toString())));
                 } catch (Exception e) {
-                    String tempName = albumFile.getName().replace("-!", "?");
+                    String tempName = albumFile.getName().replaceAll("#00F3", "?");
                     albumItem = new TreeItem<>(tempName, new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/warning.png")))));
                 }
 
@@ -341,7 +341,7 @@ public class Controller implements  Initializable {
             System.out.println("Setting labels to: " + musicPlayer.getSongTitle() + " by " + musicPlayer.getArtistName());
 
             try {
-                currentAlbumImageView.setImage(fileUtils.getAlbumFXImage(new File(musicPlayer.getCurrentSongFile().getParent()), "album"));
+                currentAlbumImageView.setImage(fileUtils.getAlbumFXImage(new File(new File(musicPlayer.getCurrentSongPath()).getParent()), "album"));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -390,8 +390,10 @@ public class Controller implements  Initializable {
 
         if(shuffleSelected) {
             shuffleImageView.setImage(shuffleSelectedImage);
+            musicPlayer.shuffle();
         } else {
             shuffleImageView.setImage(shuffleUnselectedImage);
+            musicPlayer.refreshAlbumSongQueue();
         }
     }
 
