@@ -13,7 +13,7 @@
 
 <HBox prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #161616;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.PreviewTabController">
    <children>
-      <VBox alignment="TOP_CENTER" prefHeight="570.0" prefWidth="321.0">
+      <VBox fx:id="vbox" alignment="TOP_CENTER" prefHeight="570.0" prefWidth="321.0">
          <children>
             <ImageView fx:id="albumImageView" fitHeight="300.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
                <image>
@@ -25,15 +25,11 @@
             </ImageView>
             <HBox alignment="CENTER" prefHeight="65.0" prefWidth="321.0" spacing="10.0">
                <children>
-                  <Button mnemonicParsing="false" styleClass="transparent" stylesheets="@css/styles.css">
-                     <graphic>
-                        <ImageView fitHeight="150.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@graphics/addQueue.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
+                  <ImageView fitHeight="150.0" fitWidth="30.0" onMouseClicked="#addToQueue" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@graphics/addQueue.png" />
+                     </image>
+                  </ImageView>
                   <Button mnemonicParsing="false" onMouseClicked="#playPreview" styleClass="transparent" stylesheets="@css/styles.css">
                      <graphic>
                         <ImageView fx:id="playPauseImageView" fitHeight="150.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
@@ -43,15 +39,11 @@
                         </ImageView>
                      </graphic>
                   </Button>
-                  <Button mnemonicParsing="false" styleClass="transparent" stylesheets="@css/styles.css">
-                     <graphic>
-                        <ImageView fitHeight="150.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@graphics/addFavorite.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
+                  <ImageView fitHeight="150.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@graphics/addFavorite.png" />
+                     </image>
+                  </ImageView>
                </children>
                <VBox.margin>
                   <Insets top="10.0" />
