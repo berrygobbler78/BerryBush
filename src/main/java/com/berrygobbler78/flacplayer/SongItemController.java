@@ -44,10 +44,15 @@ public class SongItemController implements Initializable {
     @FXML
     private void playSong() {
         musicPlayer.setDirectoryPath(songFile.getParent(), ParentType.ALBUM);
-        musicPlayer.setCurrentSongIndex(Integer.parseInt(songNumberLabel.getText())-1);
+        musicPlayer.playSongNum(Integer.parseInt(songNumberLabel.getText())-1);
         controller.setCurrentPlayPauseImageViewPaused(false);
         musicPlayer.play();
 
         musicPlayer.refreshAlbumSongQueue();
+    }
+
+    @FXML
+    private void addToQueue() {
+        musicPlayer.addToUserQueue(songFile);
     }
 }

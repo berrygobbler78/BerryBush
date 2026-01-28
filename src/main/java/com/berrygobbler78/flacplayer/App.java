@@ -33,6 +33,9 @@ public class App extends Application {
 
         FileInputStream fis;
         ObjectInputStream ois;
+
+
+
         try {
             fis = new FileInputStream(userDataFile);
             ois = new ObjectInputStream(fis);
@@ -40,6 +43,19 @@ public class App extends Application {
 
             fis.close();
             ois.close();
+
+            if(!(new File(userData.getRootDirectoryPath()).exists())) {
+                userDataFile.delete();
+                userData = new UserData();
+                File selectedDirectory = fileUtils.directoryChooser(new Stage(), "Pick a Directory", "C:");
+                App.userData.setRootDirectoryPath(selectedDirectory.getAbsolutePath());
+
+                FileOutputStream fos = new FileOutputStream(userDataFile);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(userData);
+                oos.close();
+                fos.close();
+            }
 
         } catch (IOException e) {
             userData = new UserData();
@@ -61,7 +77,7 @@ public class App extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(Objects.requireNonNull(App.class.getResource("css/styles.css")).toExternalForm());
         stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
+        stage.initStyle(StageStyle.DECORATED);
         stage.show();
 
 
