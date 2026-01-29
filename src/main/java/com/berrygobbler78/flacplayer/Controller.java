@@ -34,8 +34,6 @@ public class Controller implements  Initializable {
     @FXML
     private Button playPauseButton, nextButton, previousButton, repeatButton, shuffleButton;
     @FXML
-    private Button exitButton;
-    @FXML
     private Slider volumeSlider;
     @FXML
     private JFXSlider songProgressSlider;
@@ -54,7 +52,9 @@ public class Controller implements  Initializable {
     @FXML
     private TextField searchBar;
 
-    private TreeView<String> defaultTreeView = new TreeView<>();
+    private TreeItem<String> defaultRoot = null;
+    private ArrayList<TreeItem<String>> supaList = new ArrayList<>();
+    private HashMap<TreeItem<String>, String> treeItemMap = new HashMap<>();
 
     public static FileUtils fileUtils;
     public static MusicPlayer musicPlayer;
@@ -78,9 +78,6 @@ public class Controller implements  Initializable {
     private double y;
 
     private final FileFilter folderFilter = File::isDirectory;
-
-    private ArrayList<TreeItem<String>> supaList = new ArrayList<>();
-    
 
     private final FileFilter albumArt = new FileFilter() {
         public boolean accept(File f)
@@ -132,14 +129,27 @@ public class Controller implements  Initializable {
     @FXML
     private void search() {
         treeView.getRoot().getChildren().clear();
-        treeView.getRoot().getChildren().addAll(searchList(searchBar.getText(), defaultTreeView));
+        try {
+            treeView.getRoot().getChildren().addAll(searchList(searchBar.getText()));
+        } catch (Exception e) {
+            treeView.getRoot().getChildren().addAll(supaList);
+        }
     }
 
-    private List<TreeItem<String>> searchList(String search, TreeView<String> treeView) {
+    private List<TreeItem<String>> searchList(String search) {
         List<TreeItem<String>> foundItems = new ArrayList<>();
-        for(int i = 0; i < supaList.size(); i++){
-            if(supaList.get(i).getValue().toLowerCase().contains(search.toLowerCase())){
-                foundItems.add(supaList.get(i));
+
+        if(search.isEmpty()){
+            treeItemMap.clear();
+            refreshTreeView();
+            return null;
+        }
+
+        for(TreeItem<String> item : treeItemMap.keySet()){
+            if(item.getValue().toLowerCase().contains(search.toLowerCase())){
+                TreeItem<String> artistItem = new TreeItem<>(item.getValue(), item.getGraphic());
+                artistItem.getChildren().addAll(item.getChildren());
+                foundItems.add(artistItem);
             }
         }
 
@@ -231,27 +241,37 @@ public class Controller implements  Initializable {
             TreeItem<String> artistItem = new TreeItem<>(artistFile.getName(), new ImageView(
                     new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/cd.png")))
             ));
-            System.out.println(artistItem.getValue());
             for (File albumFile : Objects.requireNonNull(artistFile.listFiles(folderFilter))) {
                 TreeItem<String> albumItem = null;
-                for(File f : albumFile.listFiles()){
-                    try{
-                        File albumArtIcon = new File(albumFile, "albumArtIcon.png");
-                        String tempName = albumFile.getName().replaceAll("#00F3", "?");
-                        albumItem = new TreeItem<String>(tempName, new ImageView(new Image(albumArtIcon.toURI().toString())));
-                    } catch(Exception e) {
-                        String tempName = albumFile.getName().replaceAll("#00F3", "?");
-                        albumItem = new TreeItem<>(tempName, new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/warning.png")))));
-                    }
+                try{
+                    File albumArtIcon = new File(albumFile, "albumArtIcon.png");
+                    String tempName = albumFile.getName().replaceAll("#00F3", "?");
+                    albumItem = new TreeItem<String>(tempName, new ImageView(new Image(albumArtIcon.toURI().toString())));
+                } catch(Exception e) {
+                    String tempName = albumFile.getName().replaceAll("#00F3", "?");
+                    albumItem = new TreeItem<>(tempName, new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/warning.png")))));
+                }
+                int songNum = 1;
+                for(File songFile : Objects.requireNonNull(albumFile.listFiles(flacFilter))) {
+                    TreeItem<String> songItem = null;
+                    songItem = new TreeItem<>(songNum + ". " + fileUtils.getSongTitle(songFile), new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/song.png")))));
+                    songNum++;
+
+                    treeItemMap.put(songItem, songFile.getAbsolutePath());
+                    albumItem.getChildren().add(songItem);
                 }
 
+                treeItemMap.put(albumItem, albumFile.getAbsolutePath());
                 artistItem.getChildren().add(albumItem);
 
             }
             supaList.add(artistItem);
+            treeItemMap.put(artistItem, artistFile.getAbsolutePath());
             rootItem.getChildren().add(artistItem);
 
         }
+
+        defaultRoot = rootItem;
 
         treeView.setRoot(rootItem);
         treeView.setShowRoot(false);
@@ -261,42 +281,53 @@ public class Controller implements  Initializable {
     @FXML
     private void selectAlbum() {
         TreeItem<String> selectedItem = (TreeItem<String>) treeView.getSelectionModel().getSelectedItem();
-        boolean operationAvailable = true;
-        for(Tab tab : previewTabPane.getTabs()) {
-            if(tab.getText().equals(selectedItem.getValue())) {
-                previewTabPane.getSelectionModel().select(tab);
-                operationAvailable = false;
+        if(new File(treeItemMap.get(selectedItem)).isDirectory()) {
+            if (selectedItem.getParent().getParent() == treeView.getRoot()) {
+                boolean operationAvailable = true;
+                for(Tab tab : previewTabPane.getTabs()) {
+                    if(tab.getText().equals(selectedItem.getValue())) {
+                        previewTabPane.getSelectionModel().select(tab);
+                        operationAvailable = false;
+                    }
+                }
+                File albumFile = new File(App.userData.getRootDirectoryPath() + "\\" + selectedItem.getParent().getValue() + "\\" + selectedItem.getValue());
+
+                if (new File(albumFile.getParent()).getName().equals(treeView.getRoot().getValue()) ) {
+                    operationAvailable = false;
+                }
+
+                if(operationAvailable) {
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("previewTab.fxml"));
+                    try {
+                        Node previewNode = loader.load();
+                        Tab previewTab = new Tab(albumFile.getName());
+                        previewTab. setContent(previewNode);
+
+                        PreviewTabController previewTabController = loader.getController();
+                        previewTabController.setMainController(this);
+                        previewTabController.setValues(albumFile, fileUtils.getAlbumFXImage(albumFile, "album"), albumFile.getName(), new File(albumFile.getParent()).getName(), "album");
+                        previewTabController.refreshSongItemVBox();
+                        previewTabController.setPlayPauseImageView(true);
+
+                        previewTab.setGraphic(new ImageView(fileUtils.getAlbumFXIcon(albumFile, "album")));
+
+                        previewTabPane.getTabs().add(previewTab);
+                        previewTabPane.getSelectionModel().select(previewTab);
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else if (selectedItem == treeView.getRoot()) {
+//            TODO: artist page creation
             }
+        } else {
+//            If song
+            musicPlayer.loadSong(treeItemMap.get(selectedItem));
+            musicPlayer.play();
         }
-        File albumFile = new File(App.userData.getRootDirectoryPath() + "\\" + selectedItem.getParent().getValue() + "\\" + selectedItem.getValue());
 
-        if (new File(albumFile.getParent()).getName().equals(treeView.getRoot().getValue()) ) {
-            operationAvailable = false;
-        }
-
-        if(operationAvailable) {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("previewTab.fxml"));
-            try {
-                Node previewNode = loader.load();
-                Tab previewTab = new Tab(albumFile.getName());
-                previewTab. setContent(previewNode);
-
-                PreviewTabController previewTabController = loader.getController();
-                previewTabController.setMainController(this);
-                previewTabController.setValues(albumFile, fileUtils.getAlbumFXImage(albumFile, "album"), albumFile.getName(), new File(albumFile.getParent()).getName(), "album");
-                previewTabController.refreshSongItemVBox();
-                previewTabController.setPlayPauseImageView(true);
-
-                previewTab.setGraphic(new ImageView(fileUtils.getAlbumFXIcon(albumFile, "album")));
-
-                previewTabPane.getTabs().add(previewTab);
-                previewTabPane.getSelectionModel().select(previewTab);
-
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     @FXML
