@@ -11,6 +11,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <os-classifier> win </os-classifier>
+    <forceUploadingPainter> true </forceUploadingPainter>
 <junit.version>5.12.1</junit.version>  </properties>
 
   <dependencies>
@@ -56,7 +59,34 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.pixelduke</groupId>
+      <artifactId>fxthemes</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jfoenix</groupId>
+      <artifactId>jfoenix</artifactId>
+      <version>9.0.10</version>
+    </dependency>
   </dependencies>
+
+  <profiles>
+    <!-- MacOS X compiling step -->
+    <profile>
+      <id>mac</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+      </activation>
+      <properties>
+        <xcodeScheme>Debug</xcodeScheme>
+        <my.property>running.on.mac</my.property>
+        <forceUploadingPainter>false</forceUploadingPainter>
+      </properties>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -85,6 +115,15 @@
               <noManPages>true</noManPages>
               <stripDebug>true</stripDebug>
               <noHeaderFiles>true</noHeaderFiles>
+              <options>
+                <!-- So that changing the background of a native Window works well (at least on some machines using win11) -->
+                <option>-Dprism.forceUploadingPainter=${forceUploadingPainter}</option>
+                <!-- For getting the native window handle (WindowUtils.getNativeHandleForStage method) -->
+                <option>--add-opens</option>
+                <option>javafx.graphics/javafx.stage=com.pixelduke.fxthemes</option>
+                <option>--add-exports</option>
+                <option>javafx.graphics/com.sun.javafx.tk.quantum=com.pixelduke.fxthemes</option>
+              </options>
             </configuration>
           </execution>
         </executions>
