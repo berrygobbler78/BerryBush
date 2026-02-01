@@ -85,11 +85,12 @@ public class App extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(Objects.requireNonNull(App.class.getResource("css/styles.css")).toExternalForm());
 
+        stage.setTitle("BerryBush");
+
         stage.setScene(scene);
         stage.show();
 
         themeWindowManager.setWindowFrameColor(primaryStage, Color.web("#121212"));
-//        themeWindowManager.se
         themeWindowManager.setDarkModeForWindowFrame(primaryStage, true);
 
         musicPlayer.setController(fxmlLoader.getController());
