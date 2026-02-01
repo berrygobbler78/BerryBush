@@ -1,5 +1,5 @@
 ## Introduction:
-Welcome to my yet-to-be named flac player.
+Welcome to my yet-to-be named java flac player.
 The intention for this application is to be able to rip flac files from your cd collection and play them natively.
 
 ![img.png](READMEIMAGE.png)
@@ -17,12 +17,17 @@ The intention for this application is to be able to rip flac files from your cd 
 - [ ] In depth song settings (Volume, playback speed, pitch?)
 - [ ] Playlists
 - [ ] Search feature
-- [ ] Fix the window
 - [ ] Make everything resize nicely
 - [ ] Show songs in queue
+- [ ] Add support for other file types
+- [ ] Gapless playback
+- [ ] Home page 
+- [ ] Artist pages
+- [ ] Setup wizard
 
 ### Completed  ✓
 - [x] Shuffling
+- [x] Fix the window
 
 ## Credits:
 - I am using some Icon8 icons for my buttons, they're great.
