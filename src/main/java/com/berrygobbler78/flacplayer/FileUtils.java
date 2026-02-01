@@ -33,6 +33,20 @@ public class FileUtils implements PCMProcessor {
 
     private WavWriter wav;
 
+
+
+    public final FileFilter folderFilter = File::isDirectory;
+
+    public final FileFilter albumArtFilter = new FileFilter() {
+        public boolean accept(File f)
+        {
+            return f.getName().equals("albumArtImage.png") || f.getName().equals("albumArtIcon.png");
+        }
+    };
+
+    public final FileFilter flacFilter = f -> f.getName().endsWith("flac");
+
+
     public String getSongTitle(File file) {
         return file.getName().replace(".flac", "").substring(file.getName().indexOf(".")+1, file.getName().replace(".flac", "").lastIndexOf("-")).trim();
     }
