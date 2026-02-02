@@ -71,11 +71,7 @@ public class App extends Application {
             File selectedDirectory = fileUtils.directoryChooser(new Stage(), "Pick a Directory", "C:");
             App.userData.setRootDirectoryPath(selectedDirectory.getAbsolutePath());
 
-            FileOutputStream fos = new FileOutputStream(userDataFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(userData);
-            oos.close();
-            fos.close();
+            saveUserData();
 
         }
 
@@ -94,6 +90,23 @@ public class App extends Application {
         themeWindowManager.setDarkModeForWindowFrame(primaryStage, true);
 
         musicPlayer.setController(fxmlLoader.getController());
+    }
+
+    public static void saveUserData() {
+        try {
+            FileOutputStream fos = new FileOutputStream(userDataFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(userData);
+            oos.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static Stage getPrimaryStage() {
+        return primaryStage;
     }
 
     static void deleteTempFile() {
