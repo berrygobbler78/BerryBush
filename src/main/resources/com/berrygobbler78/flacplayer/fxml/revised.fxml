@@ -9,7 +9,7 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="900.0" prefHeight="720.0" prefWidth="1220.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.Controller">
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="900.0" prefHeight="720.0" prefWidth="1220.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.MainController">
    <children>
       <BorderPane prefHeight="720.0" prefWidth="918.0" style="-fx-background-color: #161616;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <bottom>
@@ -34,7 +34,7 @@
                            <children>
                               <ImageView fx:id="currentAlbumImageView" fitHeight="119.0" fitWidth="75.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@default_album_image.jpg" />
+                                    <Image url="@../graphics/default_album_image.jpg" />
                                  </image>
                               </ImageView>
                               <VBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="254.0">
@@ -73,7 +73,7 @@
                                  <graphic>
                                     <ImageView fx:id="shuffleImageView" fitHeight="150.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/shuffle_unselected.png" />
+                                          <Image url="@../graphics/shuffle_unselected.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>
@@ -82,7 +82,7 @@
                                  <graphic>
                                     <ImageView fx:id="previousImageView" fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/previous.png" />
+                                          <Image url="@../graphics/previous.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>
@@ -91,7 +91,7 @@
                                  <graphic>
                                     <ImageView fx:id="currentPlayPauseImageView" fitHeight="50.0" fitWidth="40.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/play.png" />
+                                          <Image url="@../graphics/play.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>
@@ -100,16 +100,16 @@
                                  <graphic>
                                     <ImageView fx:id="nextImageView" fitHeight="50.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/next.png" />
+                                          <Image url="@../graphics/next.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>
                               </Button>
-                              <Button fx:id="repeatButton" mnemonicParsing="false" onAction="#repeatCycle" styleClass="transparent" stylesheets="@css/styles.css">
+                              <Button fx:id="repeatButton" mnemonicParsing="false" onAction="#repeatCycle" styleClass="transparent">
                                  <graphic>
                                     <ImageView fx:id="repeatImageView" fitHeight="150.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/repeat_unselected.png" />
+                                          <Image url="@../graphics/repeat_unselected.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>
@@ -123,7 +123,7 @@
                                     <Insets right="5.0" />
                                  </HBox.margin>
                               </Label>
-                              <JFXSlider fx:id="songProgressSlider" onMousePressed="#initChangeSongPos" onMouseReleased="#changeSongPos" prefHeight="57.0" prefWidth="499.0" stylesheets="@css/slider.css" value="50.0" />
+                              <JFXSlider fx:id="songProgressSlider" onMousePressed="#initChangeSongPos" onMouseReleased="#changeSongPos" prefHeight="57.0" prefWidth="499.0" stylesheets="@../css/slider.css" value="50.0" />
                               <Label fx:id="totTrackTime" prefHeight="15.0" text="00:00" textFill="#cdcdcd">
                                  <HBox.margin>
                                     <Insets left="5.0" />
@@ -137,79 +137,93 @@
             </StackPane>
          </bottom>
          <center>
-            <SplitPane dividerPositions="0.21592775041050905" prefHeight="160.0" prefWidth="200.0" style="-fx-background-color: #121212;" stylesheets="@css/leftSplitPane.css" BorderPane.alignment="CENTER">
-              <items>
-                  <VBox alignment="TOP_CENTER" prefHeight="568.0" prefWidth="247.0">
-                     <children>
-                        <HBox alignment="CENTER_LEFT">
+            <TabPane fx:id="previewTabPane" style="-fx-background-color: #161616;" stylesheets="@../css/tabPane.css" tabClosingPolicy="ALL_TABS" BorderPane.alignment="CENTER">
+               <styleClass>
+                  <String fx:value="tab" />
+                  <String fx:value="tab-pane" />
+               </styleClass>
+               <tabs>
+                  <Tab closable="false" text="Home">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <HBox alignment="CENTER_RIGHT" prefHeight="35.0" prefWidth="288.0" spacing="10.0">
+                              <HBox alignment="CENTER_RIGHT" layoutX="690.0" prefHeight="46.0" prefWidth="200.0" AnchorPane.topAnchor="0.0">
                                  <children>
-                                    <TextField fx:id="searchBar" onKeyTyped="#search" prefHeight="25.0" prefWidth="335.0" promptText="Search..." />
-                                    <ImageView fitHeight="30.0" fitWidth="20.0" onMouseClicked="#refreshTreeView" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@graphics/refresh.png" />
+                                          <Image url="@../graphics/settings.png" />
                                        </image>
                                     </ImageView>
-                                    <ImageView fitHeight="30.0" fitWidth="20.0" onMouseClicked="#openDirectory" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@graphics/file_explorer.png" />
-                                       </image>
-                                    </ImageView>
-                                    <MenuButton maxHeight="30.0" maxWidth="30.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" styleClass="transparent" stylesheets="@css/styles.css">
-                                      <items>
-                                          <Menu mnemonicParsing="false" text="File">
-                                            <items>
-                                              <MenuItem mnemonicParsing="false" text="Action 1" />
-                                            </items>
-                                          </Menu>
-                                          <Menu mnemonicParsing="false" text="Playback">
-                                             <items>
-                                                <MenuItem mnemonicParsing="false" text="Action 1" />
-                                             </items>
-                                          </Menu>
-                                          <Menu mnemonicParsing="false" text="Edit">
-                                             <items>
-                                                <SeparatorMenuItem mnemonicParsing="false" />
-                                                <MenuItem mnemonicParsing="false" text="More Settings" />
-                                             </items>
-                                          </Menu>
-                                          <Menu mnemonicParsing="false" text="Settings">
-                                            <items>
-                                              <MenuItem mnemonicParsing="false" onAction="#forceGenerateCache" text="Generate Cache" />
-                                                <MenuItem mnemonicParsing="false" onAction="#pickDirectory" text="Change Directory" />
-                                            </items>
-                                          </Menu>
-                                          <SeparatorMenuItem mnemonicParsing="false" />
-                                        <MenuItem mnemonicParsing="false" text="Exit" />
-                                      </items>
-                                       <graphic>
-                                          <ImageView fitHeight="30.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
-                                             <image>
-                                                <Image url="@graphics/menu.png" />
-                                             </image>
-                                          </ImageView>
-                                       </graphic>
-                                    </MenuButton>
                                  </children>
                                  <padding>
-                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                    <Insets right="10.0" />
                                  </padding>
                               </HBox>
                            </children>
-                        </HBox>
-                        <TreeView fx:id="treeView" onContextMenuRequested="#selectAlbum" onMouseClicked="#selectAlbum" prefHeight="714.0" prefWidth="260.0" style="-fx-background-color: #121212;" stylesheets="@css/treeView.css" />
-                     </children>
-                  </VBox>
-                  <TabPane fx:id="previewTabPane" style="-fx-background-color: #161616;" stylesheets="@css/tabPane.css" tabClosingPolicy="ALL_TABS">
-                     <styleClass>
-                        <String fx:value="tab" />
-                        <String fx:value="tab-pane" />
-                     </styleClass>
-                  </TabPane>
-              </items>
-            </SplitPane>
+                        </AnchorPane>
+                    </content>
+                  </Tab>
+               </tabs>
+            </TabPane>
          </center>
+         <left>
+            <VBox alignment="TOP_CENTER" prefHeight="620.0" prefWidth="320.0" style="-fx-background-color: #121212;" BorderPane.alignment="CENTER">
+               <children>
+                  <HBox alignment="CENTER_LEFT" style="-fx-background-color: #121212;">
+                     <children>
+                        <HBox alignment="CENTER_RIGHT" prefHeight="35.0" prefWidth="288.0" spacing="10.0">
+                           <children>
+                              <TextField fx:id="searchBar" onKeyTyped="#search" prefHeight="25.0" prefWidth="335.0" promptText="Search..." />
+                              <ImageView fitHeight="30.0" fitWidth="20.0" onMouseClicked="#newPlaylist" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/add.png" />
+                                 </image>
+                              </ImageView>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                        </HBox>
+                        <MenuButton maxHeight="30.0" maxWidth="30.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" styleClass="transparent" stylesheets="@../css/menuButton.css">
+                          <items>
+                              <Menu mnemonicParsing="false" text="File">
+                                <items>
+                                  <MenuItem mnemonicParsing="false" onAction="#openDirectory" text="Open in File Explorer" />
+                                    <MenuItem mnemonicParsing="false" onAction="#refreshTreeView" text="Refresh Explorer" />
+                                </items>
+                              </Menu>
+                              <Menu mnemonicParsing="false" text="Playback">
+                                 <items>
+                                    <MenuItem mnemonicParsing="false" text="Action 1" />
+                                 </items>
+                              </Menu>
+                              <Menu mnemonicParsing="false" text="Edit">
+                                 <items>
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                    <MenuItem mnemonicParsing="false" text="More Settings" />
+                                 </items>
+                              </Menu>
+                              <Menu mnemonicParsing="false" text="Settings">
+                                <items>
+                                  <MenuItem mnemonicParsing="false" onAction="#forceGenerateCache" text="Generate Cache" />
+                                    <MenuItem mnemonicParsing="false" onAction="#pickDirectory" text="Change Directory" />
+                                </items>
+                              </Menu>
+                          </items>
+                           <graphic>
+                              <ImageView fitHeight="30.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/menu.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </MenuButton>
+                     </children>
+                  </HBox>
+                  <TreeView fx:id="treeView" onContextMenuRequested="#selectPreview" onMouseClicked="#selectPreview" prefWidth="247.0" style="-fx-background-color: #121212;" stylesheets="@../css/treeView.css" VBox.vgrow="ALWAYS" />
+               </children>
+            </VBox>
+         </left>
       </BorderPane>
    </children>
 </AnchorPane>
