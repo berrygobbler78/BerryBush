@@ -8,3 +8,7 @@
 .scroll-bar {
     -fx-background-color: #161616;
 }
+
+.scroll-bar .viewport {
+    -fx-background-color: #161616;
+}
