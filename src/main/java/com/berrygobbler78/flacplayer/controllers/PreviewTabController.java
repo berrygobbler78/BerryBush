@@ -1,14 +1,17 @@
 package com.berrygobbler78.flacplayer.controllers;
 
 import com.berrygobbler78.flacplayer.*;
-import com.berrygobbler78.flacplayer.Images.IMAGE;
 import com.berrygobbler78.flacplayer.userdata.Playlist;
 import com.berrygobbler78.flacplayer.util.FileUtils;
+import com.berrygobbler78.flacplayer.Constants.FXML_PATHS;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
@@ -26,87 +29,89 @@ public class PreviewTabController implements Initializable {
     private Label titleLabel, artistLabel;
     @FXML
     private VBox songItemVBox, vbox;
+    @FXML
+    private MenuButton optionsMenuButton;
 
-    private Enums.PARENT_TYPE type;
-    private File file;
+    private Constants.PARENT_TYPE type;
+
+    private File parentFile;
     private Playlist playlist;
+
     private MainController controller;
-    private MusicPlayer musicPlayer;
-
-
-    private double font = 36;
-    private boolean doAction = true;
-    private final int error = 5;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.musicPlayer = App.musicPlayer;
     }
 
     @FXML
     private void playPreview() {
-        if(type == Enums.PARENT_TYPE.ALBUM) {
-            musicPlayer.setParentTypeAlbum(file.getPath());
-            musicPlayer.playFirstSong();
-            musicPlayer.setPreviewTabController(this);
-        } else if(type == Enums.PARENT_TYPE.PLAYLIST) {
-            musicPlayer.setParentTypePlaylist(playlist);
-            musicPlayer.playFirstSong();
-            musicPlayer.setPreviewTabController(this);
+        if(type == Constants.PARENT_TYPE.ALBUM) {
+            MusicPlayer.setParentTypeAlbum(parentFile.getPath());
+            MusicPlayer.playFirstSong();
+            MusicPlayer.setPreviewTabController(this);
+        } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
+            MusicPlayer.setParentTypePlaylist(playlist);
+            MusicPlayer.playFirstSong();
+            MusicPlayer.setPreviewTabController(this);
         }
     }
 
     @FXML
     private void addToQueue() {
-        musicPlayer.addToUserQueue(file.getAbsolutePath());
+        MusicPlayer.addToUserQueue(parentFile.getAbsolutePath());
     }
 
     public void setAlbumValues(File file) {
-        this.file = file;
-        type = Enums.PARENT_TYPE.ALBUM;
-        try {
-            imageView.setImage(FileUtils.getCoverImage(file.getAbsolutePath(), Enums.FILE_TYPE.ALBUM));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.parentFile = file;
+
+        type = Constants.PARENT_TYPE.ALBUM;
+
+        imageView.setImage(FileUtils.getCoverImage(file.getAbsolutePath(), FileUtils.FILE_TYPE.ALBUM));
         titleLabel.setText(file.getName());
         artistLabel.setText(file.getParentFile().getName());
     }
 
     public void setPlaylistValues(Playlist playlist) {
         this.playlist = playlist;
-        type = Enums.PARENT_TYPE.PLAYLIST;
-        try {
-            imageView.setImage(FileUtils.getCoverImage(playlist.getPath(), Enums.FILE_TYPE.PLAYLIST));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+        type = Constants.PARENT_TYPE.PLAYLIST;
+
+        imageView.setImage(FileUtils.getCoverImage(playlist.getPath(), FileUtils.FILE_TYPE.PLAYLIST));
         titleLabel.setText(playlist.getName());
         artistLabel.setText(App.references.getUserName());
+
+        MenuItem deletePlaylistItem = new MenuItem("Delete Playlist");
+        deletePlaylistItem.setOnAction(_ -> {
+            App.references.removePlaylist(playlist);
+            controller.removeTab(this);
+            controller.refreshTreeView();
+        });
+
+        optionsMenuButton.getItems().addAll(deletePlaylistItem);
     }
 
     public void setPlayPauseImageViewPaused(boolean paused) {
         if(paused) {
-            playPauseImageView.setImage(IMAGE.PLAY.get());
+            playPauseImageView.setImage(Constants.IMAGES.PLAY.get());
         } else  {
-            playPauseImageView.setImage(IMAGE.PAUSE.get());
+            playPauseImageView.setImage(Constants.IMAGES.PAUSE.get());
         }
     }
 
     public void refreshSongItemVBox() {
         songItemVBox.getChildren().clear();
 
-        if(type == Enums.PARENT_TYPE.ALBUM) {
+        if(type == Constants.PARENT_TYPE.ALBUM) {
             try {
 
                 ArrayList<File> songListArray =
-                        new ArrayList<>(Arrays.asList(Objects.requireNonNull(file.listFiles(FileUtils.getFileFilter(Enums.FILTER_TYPE.FLAC)))));
+                        new ArrayList<>(Arrays.asList(Objects.requireNonNull(parentFile.listFiles(FileUtils.getFileFilter(FileUtils.FILTER_TYPE.FLAC)))));
 
                 Node[] nodes = new Node[songListArray.size()];
 
                 for(int i = 0; i < nodes.length; i++){
                     FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(new File("src/main/resources/com/berrygobbler78/flacplayer/fxml/songItem.fxml").toURI().toURL());
+                    loader.setLocation(new File(FXML_PATHS.SONG_ITEM.get()).toURI().toURL());
                     nodes[i] = loader.load();
 
                     SongItemController songItemController = loader.getController();
@@ -116,7 +121,7 @@ public class PreviewTabController implements Initializable {
                     songItemController.setItemInfo(
                             i + 1,
                             song.getAbsolutePath(),
-                            Enums.PARENT_TYPE.ALBUM
+                            Constants.PARENT_TYPE.ALBUM
                     );
 
                     songItemController.setControllers(controller, this);
@@ -126,13 +131,9 @@ public class PreviewTabController implements Initializable {
             } catch (IOException e) {
                 System.err.println("Song list failed with exception: " + e);
             }
-        } else if(type == Enums.PARENT_TYPE.PLAYLIST) {
+        } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
             try {
-                int nodesLength = 0;
-
-                for(String song : playlist.getSongList()) {
-                    nodesLength ++;
-                }
+                int nodesLength = playlist.getSongList().size();
 
                 Node[] nodes = new Node[nodesLength];
 
@@ -148,7 +149,7 @@ public class PreviewTabController implements Initializable {
                     songItemController.setItemInfo(
                             i + 1,
                             song.getAbsolutePath(),
-                            Enums.PARENT_TYPE.PLAYLIST
+                            Constants.PARENT_TYPE.PLAYLIST
                     );
 
                     songItemController.setControllers(controller, this);
@@ -166,7 +167,7 @@ public class PreviewTabController implements Initializable {
         this.controller = controller;
     }
 
-    public Enums.PARENT_TYPE getType() {
+    public Constants.PARENT_TYPE getType() {
         return type;
     }
 
