@@ -80,7 +80,7 @@
                                           </ImageView>
                                        </graphic>
                                     </Button>
-                                    <MenuButton mnemonicParsing="false" styleClass="transparent" stylesheets="@../css/menuButton.css">
+                                    <MenuButton fx:id="optionsMenuButton" mnemonicParsing="false" styleClass="transparent" stylesheets="@../css/menuButton.css">
                                       <items>
                                         <MenuItem mnemonicParsing="false" text="Favorite" />
                                       </items>
