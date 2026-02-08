@@ -1,10 +1,9 @@
 package com.berrygobbler78.flacplayer.util;
 
 import com.berrygobbler78.flacplayer.App;
-import com.berrygobbler78.flacplayer.Enums.*;
+import com.berrygobbler78.flacplayer.Constants.*;
 
 import com.berrygobbler78.flacplayer.userdata.Playlist;
-import com.berrygobbler78.flacplayer.userdata.References;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
@@ -26,17 +25,34 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class FileUtils {
-    private static final FlacDecoder decoder = new FlacDecoder();
+    private static final Logger LOGGER = Logger.getLogger(FileUtils.class.getName());
 
-    public static FileFilter getFileFilter(FILTER_TYPE filterType) {
+    public enum FILE_TYPE{
+        SONG,
+        ALBUM,
+        ARTIST,
+        PLAYLIST
+    }
+
+    public enum FILTER_TYPE {
+        FOLDER,
+        FLAC,
+        COVER_IMAGE,
+        COVER_ICON
+    }
+
+    private static final FlacDecoder DECODER = new FlacDecoder();
+
+    public static FileFilter getFileFilter(FILTER_TYPE filterType) throws NullPointerException {
         switch (filterType) {
             case FOLDER -> {return File::isDirectory;}
             case FLAC -> {return f -> f.getName().endsWith(".flac");}
             case COVER_IMAGE -> {return f -> f.getName().endsWith("coverImage.png");}
             case COVER_ICON -> {return f -> f.getName().endsWith("coverIcon.png");}
-            default ->  {return null;}
+            default -> throw new NullPointerException("Unknown filter type:"  + filterType);
         }
     }
 
@@ -48,10 +64,9 @@ public class FileUtils {
                         File coverImage = new File(albumFolder, "coverImage.png");
                         BufferedImage coverBufferedImage =
                                 bufferedImageFromSong(Objects.requireNonNull(albumFolder.listFiles())[0].getAbsolutePath(), 600, 600);
-                        assert coverBufferedImage != null;
                         ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", coverImage);
                     } catch (IOException e) {
-                        System.err.println("Error generating image cache with exception: " + e);
+                        LOGGER.severe("Failed to create coverImage for: " + albumFolder.getAbsolutePath());
                     }
                 }
                 if (Objects.requireNonNull(albumFolder.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON))).length == 0) {
@@ -59,7 +74,38 @@ public class FileUtils {
                         File coverIcon = new File(albumFolder, "coverIcon.png");
                         BufferedImage coverBufferedImage =
                                 bufferedImageFromSong(Objects.requireNonNull(albumFolder.listFiles())[0].getAbsolutePath(), 600, 600);
-                        assert coverBufferedImage != null;
+                        ImageIO.write(resizeBufferedImage(coverBufferedImage, 20, 20), "png", coverIcon);
+                    } catch (IOException e) {
+                        LOGGER.severe("Failed to create coverIcon for: " + albumFolder.getAbsolutePath());
+                    }
+                }
+            }
+        }
+
+        for(File playListFolder : Objects.requireNonNull(new File("src/main/resources/com/berrygobbler78/flacplayer/graphics/playlist-art").listFiles(getFileFilter(FILTER_TYPE.FOLDER)))) {
+            for(Playlist playlist : App.references.getPlaylists()) {
+                String playlistName = playlist.getName().toLowerCase().replace(" ", "-");
+                if(!playListFolder.getName().equals(playlistName)) {
+                    LOGGER.warning("Playlist name does not match: " + playlistName);
+                    return;
+                }
+
+                if (Objects.requireNonNull(playListFolder.listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE))).length == 0) {
+                    try {
+                        File coverImage = new File(playListFolder, "coverImage.png");
+                        BufferedImage coverBufferedImage =
+                                bufferedImageFromPath(playListFolder.getAbsolutePath() + "/"+ playlistName + ".png", 600, 600);
+                        ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", coverImage);
+                    } catch (IOException e) {
+                        System.err.println("Error generating image cache with exception: " + e);
+                    }
+                }
+
+                if (Objects.requireNonNull(playListFolder.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON))).length == 0) {
+                    try {
+                        File coverIcon = new File(playListFolder, "coverIcon.png");
+                        BufferedImage coverBufferedImage =
+                                bufferedImageFromPath(playListFolder.getAbsolutePath() + "/"+ playlistName + ".png", 600, 600);
                         ImageIO.write(resizeBufferedImage(coverBufferedImage, 20, 20), "png", coverIcon);
                     } catch (IOException e) {
                         System.err.println("Error generating image cache with exception: " + e);
@@ -67,80 +113,42 @@ public class FileUtils {
                 }
             }
         }
-
-        for(File playListFolder : new File("src/main/resources/com/berrygobbler78/flacplayer/graphics/playlist-art").listFiles(getFileFilter(FILTER_TYPE.FOLDER))) {
-            for(Playlist playlist : App.references.getPlaylists()) {
-                String playlistName = playlist.getName().toLowerCase().replace(" ", "-");
-                if(playListFolder.getName().equals(playlistName)) {
-                    if (Objects.requireNonNull(playListFolder.listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE))).length == 0) {
-                        try {
-                            File coverImage = new File(playListFolder, "coverImage.png");
-                            BufferedImage coverBufferedImage =
-                                    bufferedImageFromFile(playListFolder.getAbsolutePath() + "/"+ playlistName + ".png", 600, 600);
-                            assert coverBufferedImage != null;
-                            ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", coverImage);
-                        } catch (IOException e) {
-                            System.err.println("Error generating image cache with exception: " + e);
-                        }
-                    }
-                    if (Objects.requireNonNull(playListFolder.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON))).length == 0) {
-                        try {
-                            File coverIcon = new File(playListFolder, "coverIcon.png");
-                            BufferedImage coverBufferedImage =
-                                    bufferedImageFromFile(playListFolder.getAbsolutePath() + "/"+ playlistName + ".png", 600, 600);
-                            assert coverBufferedImage != null;
-                            ImageIO.write(resizeBufferedImage(coverBufferedImage, 20, 20), "png", coverIcon);
-                        } catch (IOException e) {
-                            System.err.println("Error generating image cache with exception: " + e);
-                        }
-                    }
-                }
-            }
-        }
     }
 
-    public static String getSongTitle(String filePath) {
-        if(!filePath.contains(".flac")) {
+    public static String getSongTitle(String songPath) {
+        if(!songPath.contains(".flac")) {
+            LOGGER.warning("File does not contain flac extension: " + songPath);
             return "Unknown Title";
         }
 
-        String backslash = "[\\\\/]";
-        int index = filePath.split(backslash).length - 1;
-        filePath = filePath.split(backslash)[index];
+        String songName = songPath;
+        songName= songPath.split("[\\\\/]")[songName.split("[\\\\/]").length - 1];
+        songName = songName.substring(songName.indexOf(".") + 1);
+        songName = songName.split("-")[0].trim();
 
-        filePath = filePath.substring(filePath.indexOf(".") + 1);
-
-        filePath = filePath.split("-")[0].trim();
-
-        return filePath;
+        return songName;
     }
 
-    public static String getSongAlbum(String filePath) {
-        if(!filePath.contains(".flac")) {
+    public static String getSongAlbum(String songPath) {
+        if(!songPath.contains(".flac")) {
+            LOGGER.warning("File does not contain flac extension: " + songPath);
+            return "Unknown Album";
+        }
+
+        return songPath.split("[\\\\/]")[songPath.split("[\\\\/]").length - 2];
+    }
+
+    public static String getSongArtist(String songPath) {
+        if(!songPath.contains(".flac")) {
+            LOGGER.warning("File does not contain flac extension: " + songPath);
             return "Unknown Artist";
         }
 
-        String backslash = "[\\\\/]";
-        int index = filePath.split(backslash).length - 2;
-        filePath = filePath.split(backslash)[index];
-
-        return filePath;
-    }
-
-    public static String getSongArtist(String filePath) {
-        if(!filePath.contains(".flac")) {
-            return "Unknown Artist";
-        }
-
-        String backslash = "[\\\\/]";
-        int index = filePath.split(backslash).length - 3;
-        filePath = filePath.split(backslash)[index];
-
-        return filePath;
+        return songPath.split("[\\\\/]")[songPath.split("[\\\\/]").length - 3];
     }
 
     // This method is pretty slow so try to use it as little as possible
-    public static BufferedImage bufferedImageFromSong(String forSongPath, int w, int h) {
+    public static BufferedImage bufferedImageFromSong(String forSongPath, int w, int h) throws NullPointerException {
         try {
             AudioFile audioFile = AudioFileIO.read(new File(forSongPath));
             FlacTag tag = (FlacTag) audioFile.getTag();
@@ -151,85 +159,68 @@ public class FileUtils {
 
             return (bi);
         } catch (Exception e) {
-            System.err.println("Couldn't generate buffered image from file path: " + forSongPath);
-            return null;
+            throw new NullPointerException("Couldn't generate buffered image from file path: " + forSongPath);
         }
     }
 
-    public static BufferedImage bufferedImageFromFile(String forFilePath, int w, int h) {
+    public static BufferedImage bufferedImageFromPath(String path, int w, int h) throws NullPointerException{
         try {
-
-            BufferedImage bi = ImageIO.read(new File(forFilePath));
+            BufferedImage bi = ImageIO.read(new File(path));
             bi = resizeBufferedImage(bi, w, h);
 
             return (bi);
         } catch (Exception e) {
-            System.err.println("Couldn't generate buffered image from file path: " + forFilePath);
-            return null;
+            throw new NullPointerException("Couldn't generate buffered image from file path: " + path);
         }
     }
 
-    public static Image getCoverImage(String forPath, FILE_TYPE type) throws IOException {
-        File file = new File(forPath);
+    public static Image getCoverImage(String path, FILE_TYPE type) throws NullPointerException {
+        File file = new File(path);
         try {
             switch (type) {
                 case SONG -> {
-                    file = file.getParentFile().listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE))[0];
+                    file = Objects.requireNonNull(file.getParentFile().listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE)))[0];
                     return bufferedImageToFxImage(ImageIO.read(file));
                 }
-                case ALBUM -> {
-                    file = file.listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE))[0];
+                case ALBUM, PLAYLIST -> {
+                    file = Objects.requireNonNull(file.listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE)))[0];
                     return bufferedImageToFxImage(ImageIO.read(file));
                 }
                 case ARTIST -> {
                     // TODO: Implement custom artist coverImages
                     return null;
                 }
-                case PLAYLIST ->  {
-                    file = file.listFiles(getFileFilter(FILTER_TYPE.COVER_IMAGE))[0];
+                default -> throw new NullPointerException("Invalid FILE_TYPE " + type.name());
+            }
+        } catch (Exception e) {
+            throw new NullPointerException("Couldn't get cover art from path: " + path);
+        }
+    }
+
+    public static Image getCoverIcon(String path, FILE_TYPE type) throws IOException {
+        File file = new File(path);
+        try {
+            switch (type) {
+                case SONG -> {
+                    file = Objects.requireNonNull(file.getParentFile().listFiles(getFileFilter(FILTER_TYPE.COVER_ICON)))[0];
                     return bufferedImageToFxImage(ImageIO.read(file));
                 }
-                default -> {
+                case ALBUM, PLAYLIST -> {
+                    file = Objects.requireNonNull(file.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON)))[0];
+                    return bufferedImageToFxImage(ImageIO.read(file));
+                }
+                case ARTIST -> {
+                    // TODO: Implement custom artist coverImages
                     return null;
                 }
+                default -> throw new NullPointerException("Invalid FILE_TYPE " + type.name());
             }
-        } catch (IOException e) {
-            System.err.println("Couldn't get cover image from file path: " + forPath);
-            return null;
-        }
-
-    }
-
-    public static Image getCoverIcon(String forPath, FILE_TYPE type) throws IOException {
-        File file = new File(forPath);
-
-        switch (type) {
-            case SONG -> {
-                file = Objects.requireNonNull(file.getParentFile().listFiles(getFileFilter(FILTER_TYPE.COVER_ICON)))[0];
-                return bufferedImageToFxImage(ImageIO.read(file));
-            }
-            case ALBUM -> {
-                file = Objects.requireNonNull(file.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON)))[0];
-                return bufferedImageToFxImage(ImageIO.read(file));
-            }
-            case ARTIST -> {
-                //     TODO: Implement custom artist coverImages
-                return null;
-            }
-            case PLAYLIST ->  {
-                file = Objects.requireNonNull(file.listFiles(getFileFilter(FILTER_TYPE.COVER_ICON)))[0];
-                return bufferedImageToFxImage(ImageIO.read(file));
-            }
-            default -> {
-                return null;
-            }
+        } catch (Exception e) {
+            throw new NullPointerException("Couldn't get cover icon from path: " + path);
         }
     }
 
-    public static void flacToWav(String fileIn, String fileOut) {
-        decoder.flacToWav(fileIn, fileOut);
-    }
-
+    public static void flacToWav(String fileIn, String fileOut) { DECODER.flacToWav(fileIn, fileOut); }
 
     public File fileChooser(Stage stage, String title, String directoryPath, String extensionDesc, String extension) {
         FileChooser fileChooser = new FileChooser();
@@ -242,39 +233,34 @@ public class FileUtils {
 
     public static File openDirectoryChooser(Stage stage, String title, String atPath) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
-
         directoryChooser.setTitle(title);
         directoryChooser.setInitialDirectory(new File(atPath));
 
         return directoryChooser.showDialog(stage);
     }
 
-    public static void openFileExplorer(String atPath) {
+    public static void openFileExplorer(String path) {
         try{
-            Runtime.getRuntime().exec("explorer /select, " + atPath);
+            Runtime.getRuntime().exec(new String[]{"explorer /select, " + path});
 
         } catch (IOException e){
-            System.err.println("Couldn't open directory explorer: " + e);
+            LOGGER.severe("Couldn't open file explorer: " + path);
         }
     }
 
     public static BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius) {
         int w = image.getWidth();
         int h = image.getHeight();
+
         BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2 = output.createGraphics();
-
         g2.setComposite(AlphaComposite.Src);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.WHITE);
         g2.fill(new RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius));
-
-        // ... then compositing the image on top,
-        // using the white shape from above as alpha source
         g2.setComposite(AlphaComposite.SrcAtop);
         g2.drawImage(image, 0, 0, null);
-
         g2.dispose();
 
         return output;
@@ -282,31 +268,29 @@ public class FileUtils {
 
     public static BufferedImage resizeBufferedImage(BufferedImage bi, int width, int height) {
         java.awt.Image tempImage = bi.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
-        bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = bi.createGraphics();
 
+        bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = bi.createGraphics();
         g2d.drawImage(tempImage, 0, 0, null);
         g2d.dispose();
+
         return bi;
     }
 
-    public static Image bufferedImageToFxImage(BufferedImage image) {
-        WritableImage wr = null;
-        if (image != null) {
-            wr = new WritableImage(image.getWidth(), image.getHeight());
-            PixelWriter pw = wr.getPixelWriter();
-            for (int x = 0; x < image.getWidth(); x++) {
-                for (int y = 0; y < image.getHeight(); y++) {
-                    pw.setArgb(x, y, image.getRGB(x, y));
-                }
+    public static Image bufferedImageToFxImage(BufferedImage image) throws NullPointerException {
+        if(image == null) throw new NullPointerException("Image is null");
+
+        WritableImage wr = new WritableImage(image.getWidth(), image.getHeight());
+
+        PixelWriter pw = wr.getPixelWriter();
+
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                pw.setArgb(x, y, image.getRGB(x, y));
             }
         }
 
         return new ImageView(wr).getImage();
     }
-
-    public static Icon bufferedImageToIcon(BufferedImage image) {
-        return new ImageIcon(image);
-    }
-
 }
