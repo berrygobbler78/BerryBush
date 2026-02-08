@@ -13,6 +13,7 @@ module com.berrygobbler78.flacplayer {
     requires com.jfoenix;
     requires com.sun.jna.platform;
     requires com.sun.jna;
+    requires java.logging;
 
     opens com.berrygobbler78.flacplayer to javafx.fxml;
     exports com.berrygobbler78.flacplayer;
