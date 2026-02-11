@@ -18,6 +18,21 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>25.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>25.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <version>25.0.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
       <version>11.2.1</version>
@@ -32,6 +47,12 @@
       <groupId>org.jflac</groupId>
       <artifactId>jflac-codec</artifactId>
       <version>1.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.selemba1000</groupId>
+      <artifactId>JavaMediaTransportControls</artifactId>
+      <version>0.0.3</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jaudiotagger</groupId>
@@ -88,7 +109,7 @@
           <source>25</source>
           <target>25</target>
           <compilerArgs>
-            <arg>--enable-preview</arg>
+            <arg>--enable-preview</arg>\
           </compilerArgs>
         </configuration>
       </plugin>
