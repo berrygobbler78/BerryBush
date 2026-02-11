@@ -3,15 +3,17 @@ package com.berrygobbler78.flacplayer.controllers;
 import com.berrygobbler78.flacplayer.*;
 import com.berrygobbler78.flacplayer.userdata.Playlist;
 import com.berrygobbler78.flacplayer.userdata.References;
+import com.berrygobbler78.flacplayer.util.Constants;
 import com.berrygobbler78.flacplayer.util.FileUtils;
+import com.berrygobbler78.flacplayer.util.MusicPlayer;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
+import java.io.File;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.ResourceBundle;
 
 public class SongItemController implements Initializable {
@@ -32,6 +34,8 @@ public class SongItemController implements Initializable {
     private final References references = App.references;
 
     private Constants.PARENT_TYPE parentType;
+
+    private MusicPlayer musicPlayer;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -78,24 +82,26 @@ public class SongItemController implements Initializable {
     public void setControllers(MainController mainController, PreviewTabController previewTabController) {
         this.mainController = mainController;
         this.previewTabController = previewTabController;
+
+        musicPlayer = mainController.getMusicPlayer();
     }
 
     @FXML
     private void playSong() {
         switch(parentType) {
             case PLAYLIST:
-                MusicPlayer.setParentTypePlaylist(previewTabController.getPlaylist());
+                musicPlayer.setParentType(previewTabController.getPlaylist(), null);
                 break;
             case ALBUM:
-                MusicPlayer.setParentTypeAlbum(Path.of(songPath).getParent().toString());
+                musicPlayer.setParentType(null, new File(songPath).getParentFile());
         }
 
-        MusicPlayer.setPreviewTabController(previewTabController);
-        MusicPlayer.playSongNum(Integer.parseInt(songNumberLabel.getText())-1);
+        musicPlayer.setPreviewTabController(previewTabController);
+        musicPlayer.playSongNum(Integer.parseInt(songNumberLabel.getText())-1);
     }
 
     @FXML
     private void addToQueue() {
-        MusicPlayer.addToUserQueue(songPath);
+        musicPlayer.addToUserQueue(songPath);
     }
 }
