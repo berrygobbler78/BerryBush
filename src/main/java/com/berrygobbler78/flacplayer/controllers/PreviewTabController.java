@@ -1,14 +1,15 @@
 package com.berrygobbler78.flacplayer.controllers;
 
-import com.berrygobbler78.flacplayer.*;
-import com.berrygobbler78.flacplayer.userdata.Playlist;
+import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler.Playlist;
+import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import com.berrygobbler78.flacplayer.util.Constants;
-import com.berrygobbler78.flacplayer.util.FileUtils;
-import com.berrygobbler78.flacplayer.util.Constants.FXML_PATHS;
 
+import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.MusicPlayer;
+import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
+import com.berrygobbler78.flacplayer.util.records.Album;
+import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -19,184 +20,172 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class PreviewTabController implements Initializable {
+    private static final Logger LOGGER = Logger.getLogger(PreviewTabController.class.getName());
 
-    @FXML
-    private ImageView imageView, playPauseImageView;
-    @FXML
-    private Label titleLabel, artistLabel;
-    @FXML
-    private VBox songItemVBox, vbox;
-    @FXML
-    private MenuButton optionsMenuButton;
+   @FXML
+   private ImageView imageView, playPauseImageView;
+   @FXML
+   private Label titleLabel, artistLabel;
+   @FXML
+   private VBox songItemVBox, vbox;
+   @FXML
+   private MenuButton optionsMenuButton;
 
-    private Constants.PARENT_TYPE type;
+   private Constants.PARENT_TYPE type;
 
-    private File parentFile;
-    private Playlist playlist;
+   private Album album;
+   private Playlist playlist;
 
-    private MainController controller;
-    private MusicPlayer musicPlayer;
+   private MainController controller;
+   private MusicPlayer musicPlayer;
 
-    private String[] songList;
+   @Override
+   public void initialize(URL location, ResourceBundle resources) {
+   }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-    }
+   @FXML
+   private void playPreview() {
+       if(type == Constants.PARENT_TYPE.ALBUM) {
+           musicPlayer.setAlbum(album);
+           musicPlayer.setPreviewTabController(this);
+           musicPlayer.playFirstSong();
+       } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
+           musicPlayer.setPlaylist(playlist);
+           musicPlayer.setPreviewTabController(this);
+           musicPlayer.playFirstSong();
+       }
+   }
 
-    @FXML
-    private void playPreview() {
-        if(type == Constants.PARENT_TYPE.ALBUM) {
-            musicPlayer.setParentType(null, parentFile);
-            musicPlayer.setPreviewTabController(this);
-            musicPlayer.playFirstSong();
-        } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
-            musicPlayer.setParentType(playlist,null);
-            musicPlayer.setPreviewTabController(this);
-            musicPlayer.playFirstSong();
-        }
-    }
+   @FXML
+   private void addToQueue() {
+       // musicPlayer.addToUserQueue(parentFile.getAbsolutePath());
+   }
 
-    @FXML
-    private void addToQueue() {
-        musicPlayer.addToUserQueue(parentFile.getAbsolutePath());
-    }
+   public void setAlbumValues(Album album) {
+       type = Constants.PARENT_TYPE.ALBUM;
+       this.album = album;
 
-    public void setAlbumValues(File file) {
-        this.parentFile = file;
+       imageView.setImage(ImageUtils.pathToImage(album.imagePath()));
+       titleLabel.setText(album.title());
+       artistLabel.setText(album.artist().name());
+   }
 
-        type = Constants.PARENT_TYPE.ALBUM;
+   public void setPlaylistValues(Playlist playlist) {
+       this.playlist = playlist;
 
-        imageView.setImage(FileUtils.getCoverImage(file.getAbsolutePath(), FileUtils.FILE_TYPE.ALBUM));
-        titleLabel.setText(file.getName());
-        artistLabel.setText(file.getParentFile().getName());
-    }
+       type = Constants.PARENT_TYPE.PLAYLIST;
 
-    public void setPlaylistValues(Playlist playlist) {
-        this.playlist = playlist;
+       // imageView.setImage(FileUtils.getCoverImage(playlist.get(), FileUtils.FILE_TYPE.PLAYLIST));
+       titleLabel.setText(playlist.getName());
+       artistLabel.setText(UserDataHandler.getUsername());
 
-        type = Constants.PARENT_TYPE.PLAYLIST;
+       MenuItem deletePlaylistItem = new MenuItem("Delete Playlist");
+       deletePlaylistItem.setOnAction(_ -> {
+           // PlaylistDataHandler.removePlaylist(playlist);
+           // controller.removeTab(this);
+           controller.refreshTreeView();
+       });
 
-        imageView.setImage(FileUtils.getCoverImage(playlist.getPath(), FileUtils.FILE_TYPE.PLAYLIST));
-        titleLabel.setText(playlist.getName());
-        artistLabel.setText(App.getReferences().getUserName());
+       optionsMenuButton.getItems().addAll(deletePlaylistItem);
+   }
 
-        MenuItem deletePlaylistItem = new MenuItem("Delete Playlist");
-        deletePlaylistItem.setOnAction(_ -> {
-            App.getReferences().removePlaylist(playlist);
-            controller.removeTab(this);
-            controller.refreshTreeView();
-        });
+   public void setPaused(boolean paused) {
+       if(paused) {
+           playPauseImageView.setImage(Constants.IMAGES.PLAY.get());
+       } else  {
+           playPauseImageView.setImage(Constants.IMAGES.PAUSE.get());
+       }
+   }
 
-        optionsMenuButton.getItems().addAll(deletePlaylistItem);
-    }
+   public void refreshSongs() {
+       LOGGER.info("Refreshing songs...");
+       songItemVBox.getChildren().clear();
+       if(type == Constants.PARENT_TYPE.ALBUM) {
+           LOGGER.info("Refreshing songs for tab: " + album.title());
 
-    public void setPaused(boolean paused) {
-        if(paused) {
-            playPauseImageView.setImage(Constants.IMAGES.PLAY.get());
-        } else  {
-            playPauseImageView.setImage(Constants.IMAGES.PAUSE.get());
-        }
-    }
+           try {
+               List<Song> songs = album.songs();
+               songs.sort((o1, o2) -> o2.title().compareTo(o1.title()));
 
-    public void refreshSongItemVBox() {
+               LOGGER.info("Creating nodes of length: " + songs.size());
+               Node[] nodes = new Node[songs.size()];
 
-        songItemVBox.getChildren().clear();
+               for(int i = 0; i < nodes.length; i++){
+                   FXMLLoader loader = new FXMLLoader();
+                   loader.setLocation(ResourceHandler.getResourceURL("fxml/songItem.fxml"));
+                   nodes[i] = loader.load();
 
-        Task<Void> refreshVbox = new Task<>() {
-            @Override
-            protected Void call() {
-                if(type == Constants.PARENT_TYPE.ALBUM) {
-                    try {;
+                   SongItemController songItemController = loader.getController();
 
-                        ArrayList<File> songListArray =
-                                new ArrayList<>(Arrays.asList(Objects.requireNonNull(parentFile.listFiles(FileUtils.getFileFilter(FileUtils.FILTER_TYPE.FLAC)))));
-                        Collections.sort(songListArray);
+                   Song song = songs.get(i);
 
-                        Node[] nodes = new Node[songListArray.size()];
+                   songItemController.setItemInfo(
+                           i + 1,
+                           song,
+                           Constants.PARENT_TYPE.ALBUM
+                   );
 
-                        for(int i = 0; i < nodes.length; i++){
-                            FXMLLoader loader = new FXMLLoader();
-                            loader.setLocation(new File(FXML_PATHS.SONG_ITEM.get()).toURI().toURL());
-                            nodes[i] = loader.load();
+                   songItemController.setControllers(controller, PreviewTabController.this);
 
-                            SongItemController songItemController = loader.getController();
+                   int finalI = i;
+                   Platform.runLater(() -> songItemVBox.getChildren().add(nodes[finalI]));
+                   LOGGER.info("Song added: " + song.title());
+               }
+           } catch (Exception e) {
+               System.err.println("Song list failed with exception: " + e);
+           }
+       } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
+           LOGGER.info("Refreshing songs for tab: " + playlist.getName());
+           try {
+               Song song = null;
+               int nodesLength = playlist.getSongs().size();
 
-                            File song = songListArray.get(i);
+               Node[] nodes = new Node[nodesLength];
 
-                            songItemController.setItemInfo(
-                                    i + 1,
-                                    song.getAbsolutePath(),
-                                    Constants.PARENT_TYPE.ALBUM
-                            );
+               for(int i = 0; i < nodes.length; i++){
+                   FXMLLoader loader = new FXMLLoader();
+                   loader.setLocation(Path.of("src/main/resources/com/berrygobbler78/flacplayer/fxml/songItem.fxml").toUri().toURL());
+                   nodes[i] = loader.load();
 
-                            songItemController.setControllers(controller, PreviewTabController.this);
+                   SongItemController songItemController = loader.getController();
 
-                            int finalI = i;
-                            Platform.runLater(() -> {
-                                songItemVBox.getChildren().add(nodes[finalI]);
-                            });
-                        }
-                    } catch (IOException e) {
-                        System.err.println("Song list failed with exception: " + e);
-                    }
-                } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
-                    try {
-                        int nodesLength = playlist.getSongList().size();
+                   songItemController.setItemInfo(
+                           i + 1,
+                           song,
+                           Constants.PARENT_TYPE.PLAYLIST
+                   );
 
-                        Node[] nodes = new Node[nodesLength];
+                   songItemController.setControllers(controller, PreviewTabController.this);
 
-                        for(int i = 0; i < nodes.length; i++){
-                            FXMLLoader loader = new FXMLLoader();
-                            loader.setLocation(Path.of("src/main/resources/com/berrygobbler78/flacplayer/fxml/songItem.fxml").toUri().toURL());
-                            nodes[i] = loader.load();
+                   int finalI = i;
+                   Platform.runLater(() -> {
+                       songItemVBox.getChildren().add(nodes[finalI]);
+                   });
+               }
+           } catch (Exception e) {
+               System.err.println("Song list failed with exception: " + e);
+           }
 
-                            SongItemController songItemController = loader.getController();
+       }
+   }
 
-                            File song = new File(playlist.getSongList().get(i));
+   public void setMainController(MainController controller) {
+       this.controller = controller;
+       musicPlayer = controller.getMusicPlayer();
+   }
 
-                            songItemController.setItemInfo(
-                                    i + 1,
-                                    song.getAbsolutePath(),
-                                    Constants.PARENT_TYPE.PLAYLIST
-                            );
+   public Constants.PARENT_TYPE getType() {
+       return type;
+   }
 
-                            songItemController.setControllers(controller, PreviewTabController.this);
-
-                            int finalI = i;
-                            Platform.runLater(() -> {
-                                songItemVBox.getChildren().add(nodes[finalI]);
-                            });
-                        }
-                    } catch (IOException e) {
-                        System.err.println("Song list failed with exception: " + e);
-                    }
-
-                }
-                return null;
-            }
-        };
-
-        new Thread(refreshVbox).start();
-    }
-
-    public void setMainController(MainController controller) {
-        this.controller = controller;
-        musicPlayer = controller.getMusicPlayer();
-    }
-
-    public Constants.PARENT_TYPE getType() {
-        return type;
-    }
-
-    public Playlist getPlaylist() {
-        return playlist;
-    }
+   public Playlist getPlaylist() {
+       return playlist;
+   }
 
 }
