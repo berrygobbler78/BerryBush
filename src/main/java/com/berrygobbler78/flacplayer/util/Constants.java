@@ -5,32 +5,13 @@ import javafx.scene.image.Image;
 import java.util.Objects;
 
 public class Constants {
-    private static final String SONG_ITEM_PATH = "src/main/resources/com/berrygobbler78/flacplayer/fxml/songItem.fxml";
-    private static final String PREVIEW_TAB_PATH = "src/main/resources/com/berrygobbler78/flacplayer/fxml/previewTab.fxml";
-    private static final String MAIN_PATH =  "src/main/resources/com/berrygobbler78/flacplayer/fxml/revised.fxml";
-    private static final String NEW_PLAYLIST_WINDOW_PATH = "src/main/resources/com/berrygobbler78/flacplayer/fxml/newPlaylistWindow.fxml";
-
-    public enum FXML_PATHS {
-        SONG_ITEM(SONG_ITEM_PATH),
-        PREVIEW_TAB(PREVIEW_TAB_PATH),
-        MAIN(MAIN_PATH),
-        NEW_PLAYLIST(NEW_PLAYLIST_WINDOW_PATH);
-
-        private final String PATH;
-
-        FXML_PATHS(String path) {
-            this.PATH = path;
-        }
-
-        public String get() {
-            return PATH;
-        }
-    }
 
     public enum PARENT_TYPE {
         ALBUM,
         PLAYLIST
     }
+
+    // FIXME: THIS IS BAD PRACTICE, MOVE TO USING GET RESOURCE
 
     private static final Image berriesImage =
             new Image(Objects.requireNonNull(Constants.class.getResourceAsStream("/com/berrygobbler78/flacplayer/graphics/berries.png")));
