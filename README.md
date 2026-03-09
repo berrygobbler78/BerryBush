@@ -7,7 +7,7 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 ![img.png](READMEIMAGE.png)
 
 ## Instructions:
-1. Set up your file structure: Directory > Artist Names Here > Album Names Here.
+1. Set up a directory
 2. Rip your files. 
    1. I use EAC (Easy Audio Copy), with the MusicBrainz Metadata Plugin for metadata. (You will want metadata to show images). 
    My EAC profile is under resources.com.berrygobbler78.flacplayer. 
@@ -19,28 +19,36 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
    3. To add a song, select the menu button next to a song in the preview tab and go to Playlists > Your Playlist Name
 
 
-## TODO:
-### Incomplete 
-- [ ] Color picker for theme
-- [ ] Volume control
-- [ ] Playback speed
-- [ ] Make everything resize nicely
-- [ ] Show songs in queue
-- [ ] Add support for other file types
+### FIXES:
+- [ ] Fix playlists
 - [ ] Gapless playback
-- [ ] Home page (Recently played, Favorites, User content)
-- [ ] Shareable playlists
+- [ ] Polish volume control (Threading)
+- [ ] Scrollbar retains position after refreshing songlist
+- [ ] Fix UI resizing
+
+### ROADMAP
+- [ ] Color pick-able UI
+- [ ] Musicbrainz integration
+- [ ] Show songs in queue
+- [ ] Edit file tagging (change image, name, artist, etc)
+- [ ] Home page
+- [ ] Change background picture
+- [ ] Artist images
 - [ ] Artist pages
-- [ ] Customizable artist icons
+- [ ] Playback speed
+- [ ] Support for other file types
 - [ ] Listening stats
-- [ ] Highlight active parent (playlist/album)
+- [ ] Highlight active parent in treeview
 
 ### Completed  ✓
 - [x] Shuffling
 - [x] Fix the window
 - [x] Search feature
 - [x] Setup wizard
-- [x] Playlists 
+- [x] Playlists
+- [x] Switch to TOML data storage
+- [x] Fix MPRIS
+- [x] Add sorting for treeview
 
 ## Credits:
 - I am using some Icon8 icons for my buttons, they're great.
