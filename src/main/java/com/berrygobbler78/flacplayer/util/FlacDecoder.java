@@ -1,5 +1,7 @@
 package com.berrygobbler78.flacplayer.util;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jflac.FLACDecoder;
 import org.jflac.PCMProcessor;
 import org.jflac.metadata.StreamInfo;
@@ -9,10 +11,9 @@ import org.jflac.util.WavWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 public class FlacDecoder implements PCMProcessor {
-    private final Logger LOGGER = Logger.getLogger(FlacDecoder.class.getName());
+    private final Logger logger = LogManager.getLogger();
 
     private static WavWriter wav;
 
@@ -23,7 +24,7 @@ public class FlacDecoder implements PCMProcessor {
             flacDecoder.addPCMProcessor(this);
             flacDecoder.decode();
         } catch (IOException e) {
-            LOGGER.warning("Error while converting file " + inPath);
+            logger.error("Error while converting '{}' : {}", inPath, e.getMessage());
         }
     }
 
@@ -32,7 +33,7 @@ public class FlacDecoder implements PCMProcessor {
         try {
             wav.writeHeader(info);
         } catch (IOException e) {
-            LOGGER.warning("Error while processing stream info: " + info);
+            logger.error("Error while processing '{}' : {}", info, e.getMessage());
         }
     }
 
@@ -41,7 +42,7 @@ public class FlacDecoder implements PCMProcessor {
         try {
             wav.writePCM(pcm);
         } catch (IOException e) {
-            LOGGER.warning("Error while processing PCM: " + pcm);
+            logger.error("Error while processing PCM : {}", e.getMessage());
         }
     }
 }
