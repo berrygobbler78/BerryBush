@@ -1,13 +1,13 @@
 package com.berrygobbler78.flacplayer.controllers;
 
 import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler.Playlist;
 import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import com.berrygobbler78.flacplayer.util.Constants;
 import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -99,7 +99,7 @@ public class TreeManager {
     public void refresh() {
         logger.info("Refreshing tree view...");
 
-        ImageUtils.refreshAllArt();
+        ImageUtils.refreshAllArt(false);
 
         ARTIST_MAP.clear();
         ALBUM_MAP.clear();
@@ -108,17 +108,8 @@ public class TreeManager {
         DEFAULT_ROOT.getChildren().clear();
 
         TreeItem<String> userItem = new TreeItem<>(UserDataHandler.getUsername(), new ImageView(Constants.IMAGES.USER.get()));
-        for (Playlist playlist : Objects.requireNonNull(PlaylistDataHandler.getPlaylists())) {
-            // Image playlistIcon;
-            //
-            // try {
-            //     playlistIcon = getCoverIcon(playlist.getPath(), FileUtils.FILE_TYPE.PLAYLIST);
-            // } catch (Exception e) {
-            //     LOGGER.warning("Could not get cover image for playlist: " + playlist.getPath());
-            //     playlistIcon = Constants.IMAGES.WARNING.get();
-            // }
-
-            TreeItem<String> playlistItem = new TreeItem<>(playlist.getName());
+        for (Playlist playlist : PlaylistDataHandler.getPlaylists()) {
+            TreeItem<String> playlistItem = new TreeItem<>(playlist.title());
             PLAYLIST_MAP.put(playlistItem, playlist);
 
             userItem.getChildren().add(playlistItem);
@@ -132,7 +123,7 @@ public class TreeManager {
             TreeItem<String> artistItem = null;
             TreeItem<String> albumItem;
 
-            // Find or create artist
+            // Find or create an artist
             for (TreeItem<String> item : ARTIST_MAP.keySet()) {
                 if (item.getValue().equals(artist.name())) {
                     artistItem = item;
@@ -146,7 +137,7 @@ public class TreeManager {
                 ARTIST_MAP.put(artistItem, artist);
             }
 
-            // Find or create album under artist
+            // Find or create an album under an artist
             for(Album album : artist.albums()) {
                 albumItem = null;
 
@@ -186,6 +177,9 @@ public class TreeManager {
             case ALPHABETICAL -> {
                 logger.debug("Sorting set to ALPHABETICAL");
                 DEFAULT_ROOT.getChildren().sort((obj1, obj2) -> {
+                    obj1.setExpanded(false);
+                    obj2.setExpanded(false);
+
                     if (Objects.equals(obj1.getValue(), userItem.getValue()) || Objects.equals(obj2.getValue(), userItem.getValue())) {
                         return 0;
                     } else {
@@ -196,6 +190,8 @@ public class TreeManager {
             case REVERSE_ALPHABETICAL -> {
                 logger.debug("Sorting set to REVERSE_ALPHABETICAL");
                 DEFAULT_ROOT.getChildren().sort((obj1, obj2) -> {
+                    obj1.setExpanded(false);
+                    obj2.setExpanded(false);
                     if (Objects.equals(obj1.getValue(), userItem.getValue()) || Objects.equals(obj2.getValue(), userItem.getValue())) {
                         return 0;
                     } else {
