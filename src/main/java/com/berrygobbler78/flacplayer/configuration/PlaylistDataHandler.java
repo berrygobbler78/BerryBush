@@ -1,14 +1,18 @@
 package com.berrygobbler78.flacplayer.configuration;
 
+import com.berrygobbler78.flacplayer.util.FileUtils;
+import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
+import com.berrygobbler78.flacplayer.util.records.Song;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,36 +20,6 @@ public class PlaylistDataHandler {
     private static final Logger logger = LogManager.getLogger();
 
     private static final HashMap<Playlist, FileConfig> PLAYLIST_CONFIG_MAP = new HashMap<>();
-
-    public static class Playlist {
-        private String name;
-        private final List<String> songs;
-
-        public Playlist(String name, List<String> songs) {
-            this.name = name;
-            this.songs = songs;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public List<String> getSongs() {
-            return songs;
-        }
-
-        public void addSong(String song) {
-            songs.add(song);
-        }
-
-        public void removeSong(String song) {
-            songs.remove(song);
-        }
-    }
 
     public static void initialize() {
         loadPlaylists();
@@ -63,7 +37,7 @@ public class PlaylistDataHandler {
         }
 
         if(playlistFileArray == null) {
-            logger.info("Playlist directory is empty : Returning...");
+            logger.info("Playlist directory is empty, returning...");
             return;
         }
 
@@ -79,19 +53,32 @@ public class PlaylistDataHandler {
 
                 fileCfg.load();
 
-                setIfMissing(fileCfg, "playlist.name", "unknown");
-                setIfMissing(fileCfg, "playlist.songs", new ArrayList<>());
+                setIfMissing(fileCfg, "name", "Unknown Title");
+                setIfMissing(fileCfg, "user", "Unknown User");
+                setIfMissing(fileCfg, "songs", new ArrayList<>());
 
-                // Use nested keys for [playlist] section
-                String name = fileCfg.get("playlist.name");
-                List<String> songs = fileCfg.get("playlist.songs");
+                String name = fileCfg.get("name");
+                String user = fileCfg.get("user");
+                List<String> songPaths = fileCfg.get("songs");
 
-                Playlist p = new Playlist(name, songs);
+                List<Song> songs = new ArrayList<>();
+                Map<String, Song> songMap = RecordHandler.getSongList()
+                        .stream()
+                        .collect(Collectors.toMap(Song::path, s -> s));
+
+                for (String p : songPaths) {
+                    Song s = songMap.get(p);
+                    if (s != null) {
+                        songs.add(s);
+                    }
+                }
+                Playlist p = new Playlist(name, user, songs, fileCfg.getFile().getPath(),null, null);
+
                 PLAYLIST_CONFIG_MAP.put(p, fileCfg);
 
                 fileCfg.save();
 
-                logger.info("Found playlist '{}' at path: {}", p.name, file.getPath());
+                logger.info("Found playlist '{}' at path: {}", p.title(), file.getPath());
             } catch (IOException e) {
                 logger.error("Failed to get playlist at path : {} : {}", file.getPath(), e.getMessage());
             }
@@ -106,31 +93,40 @@ public class PlaylistDataHandler {
         }
     }
 
-    public static void createPlaylist(String name, List<String> songs) {
-        Playlist playlist = new Playlist(name, songs);
-
-        name = name.toLowerCase().replace(" ", "-");
-
-        try(
-            CommentedFileConfig fileConfig = CommentedFileConfig
-                .builder(ResourceHandler.getResourceFile(String.format("cache/playlists/%s.toml", name)))
-                .sync()
-                .autosave()
-                .autoreload()
-                .build()
-        ) {
-            fileConfig.set("name", playlist.name);
-            fileConfig.set("songs", playlist.songs);
+    public static void createPlaylist(String name, String author, List<Song> songs) {
+        if(songs == null) songs = new ArrayList<>();
+        File file = new File(ResourceHandler.getResourceFile("cache/playlists"), FileUtils.makeFolderSafe(name) + ".toml");
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            logger.error("Failed to create new file with path '{}' : {}", file.getPath(), e.getMessage());
+            return;
         }
+        Playlist playlist = new Playlist(name, author, songs, file.getPath(), null, null);
+
+
+        try(CommentedFileConfig fileCfg = CommentedFileConfig.builder(file).build()) {
+            fileCfg.load();
+            fileCfg.set("name", playlist.title());
+            fileCfg.set("user", playlist.author());
+            fileCfg.set("songs", playlist.songs().stream().map(Song::path).toList());
+            fileCfg.save();
+        }
+
+        RecordHandler.cache();
     }
 
-    public void removePlaylist(Playlist playlist) {
-        try (FileConfig cfg = PLAYLIST_CONFIG_MAP.remove(playlist)) {
-            if (cfg != null && cfg.getFile().exists()) {
-                if (!cfg.getFile().delete()) {
-                    logger.error("Failed to remove playlist '{}'", playlist.getName());
-                }
-            }
+    public static void removePlaylist(Playlist playlist) {
+        new File(playlist.path()).delete();
+    }
+
+    public static void save(Playlist playlist) {
+        try(CommentedFileConfig fileCfg = CommentedFileConfig.builder(new File(playlist.path())).build()) {
+            fileCfg.load();
+            fileCfg.set("name", playlist.title());
+            fileCfg.set("user", playlist.author());
+            fileCfg.set("songs", playlist.songs().stream().map(Song::path).toList());
+            fileCfg.save();
         }
     }
 
