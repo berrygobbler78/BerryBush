@@ -1,6 +1,6 @@
 package com.berrygobbler78.flacplayer.controllers;
 
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler.Playlist;
+import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import com.berrygobbler78.flacplayer.util.Constants;
 
@@ -8,6 +8,7 @@ import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.MusicPlayer;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -19,14 +20,15 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.logging.Logger;
 
 public class PreviewTabController implements Initializable {
-    private static final Logger LOGGER = Logger.getLogger(PreviewTabController.class.getName());
+    private static final Logger logger = LogManager.getLogger();
 
    @FXML
    private ImageView imageView, playPauseImageView;
@@ -68,6 +70,7 @@ public class PreviewTabController implements Initializable {
    }
 
    public void setAlbumValues(Album album) {
+       logger.info("Set tab to album '{}'", album.title());
        type = Constants.PARENT_TYPE.ALBUM;
        this.album = album;
 
@@ -77,18 +80,19 @@ public class PreviewTabController implements Initializable {
    }
 
    public void setPlaylistValues(Playlist playlist) {
+       logger.info("Set tab to playlist '{}'", playlist.title());
        this.playlist = playlist;
 
        type = Constants.PARENT_TYPE.PLAYLIST;
 
        // imageView.setImage(FileUtils.getCoverImage(playlist.get(), FileUtils.FILE_TYPE.PLAYLIST));
-       titleLabel.setText(playlist.getName());
+       titleLabel.setText(playlist.title());
        artistLabel.setText(UserDataHandler.getUsername());
 
        MenuItem deletePlaylistItem = new MenuItem("Delete Playlist");
        deletePlaylistItem.setOnAction(_ -> {
-           // PlaylistDataHandler.removePlaylist(playlist);
-           // controller.removeTab(this);
+           PlaylistDataHandler.removePlaylist(playlist);
+           controller.getTabManager().removeTab(this);
            controller.refreshTreeView();
        });
 
@@ -104,47 +108,44 @@ public class PreviewTabController implements Initializable {
    }
 
    public void refreshSongs() {
-       LOGGER.info("Refreshing songs...");
        songItemVBox.getChildren().clear();
+
        if(type == Constants.PARENT_TYPE.ALBUM) {
-           LOGGER.info("Refreshing songs for tab: " + album.title());
+           logger.debug("Refreshing songs for '{}'", album.title());
 
            try {
                List<Song> songs = album.songs();
                songs.sort((o1, o2) -> o2.title().compareTo(o1.title()));
 
-               LOGGER.info("Creating nodes of length: " + songs.size());
+               logger.debug("Creating nodes of length '{}'", songs.size());
                Node[] nodes = new Node[songs.size()];
 
                for(int i = 0; i < nodes.length; i++){
                    FXMLLoader loader = new FXMLLoader();
                    loader.setLocation(ResourceHandler.getResourceURL("fxml/songItem.fxml"));
                    nodes[i] = loader.load();
-
-                   SongItemController songItemController = loader.getController();
-
                    Song song = songs.get(i);
 
-                   songItemController.setItemInfo(
-                           i + 1,
-                           song,
-                           Constants.PARENT_TYPE.ALBUM
-                   );
-
-                   songItemController.setControllers(controller, PreviewTabController.this);
+                   SongItemController songItemController = loader.getController();
+                       songItemController.setAlbum(song.album());
+                       songItemController.setItemInfo(
+                               i + 1,
+                               song
+                       );
+                       songItemController.setControllers(controller, PreviewTabController.this);
 
                    int finalI = i;
                    Platform.runLater(() -> songItemVBox.getChildren().add(nodes[finalI]));
-                   LOGGER.info("Song added: " + song.title());
+                   logger.debug("Song added '{}'", song.title());
                }
            } catch (Exception e) {
-               System.err.println("Song list failed with exception: " + e);
+               logger.error("Song list refresh failed : {}", e.getMessage());
            }
        } else if(type == Constants.PARENT_TYPE.PLAYLIST) {
-           LOGGER.info("Refreshing songs for tab: " + playlist.getName());
+           logger.info("Refreshing songs for '{}'", playlist.title());
            try {
-               Song song = null;
-               int nodesLength = playlist.getSongs().size();
+               List<Song> songs = playlist.songs();
+               int nodesLength = playlist.songs().size();
 
                Node[] nodes = new Node[nodesLength];
 
@@ -153,23 +154,22 @@ public class PreviewTabController implements Initializable {
                    loader.setLocation(Path.of("src/main/resources/com/berrygobbler78/flacplayer/fxml/songItem.fxml").toUri().toURL());
                    nodes[i] = loader.load();
 
+                   Song song = songs.get(i);
+
                    SongItemController songItemController = loader.getController();
-
-                   songItemController.setItemInfo(
-                           i + 1,
-                           song,
-                           Constants.PARENT_TYPE.PLAYLIST
-                   );
-
-                   songItemController.setControllers(controller, PreviewTabController.this);
+                       songItemController.setPlaylist(playlist);
+                       songItemController.setItemInfo(
+                               i + 1,
+                               song
+                       );
+                       songItemController.setControllers(controller, PreviewTabController.this);
 
                    int finalI = i;
-                   Platform.runLater(() -> {
-                       songItemVBox.getChildren().add(nodes[finalI]);
-                   });
+                   Platform.runLater(() -> songItemVBox.getChildren().add(nodes[finalI]));
+                   logger.debug("Song added '{}'", song.title());
                }
            } catch (Exception e) {
-               System.err.println("Song list failed with exception: " + e);
+               logger.error("Song list refresh failed : {}", e.getMessage());
            }
 
        }
