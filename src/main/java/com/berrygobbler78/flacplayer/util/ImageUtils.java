@@ -1,11 +1,11 @@
 package com.berrygobbler78.flacplayer.util;
 
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
-import com.berrygobbler78.flacplayer.util.records.Artist;
 import javafx.scene.image.Image;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockDataPicture;
@@ -18,18 +18,19 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 public class ImageUtils {
-    private static final Logger LOGGER = Logger.getLogger(ImageUtils.class.getName());
+    private static final Logger logger = LogManager.getLogger();
 
-    public static void refreshAllArt() {
-        refreshAlbumArt();
+    public static void refreshAllArt(boolean force) {
+        refreshAlbumArt(force);
         refreshPlaylistArt();
     }
 
-    public static void refreshAlbumArt() {
-        LOGGER.info("Refreshing album art...");
+    public static void refreshAlbumArt(boolean force) {
+        logger.info("Refreshing album art...");
+
+        if(force) deleteArt();
 
         for(Album album : RecordHandler.getAlbumList()) {
             File dir = ResourceHandler.getResourceFile("cache/album-art");
@@ -46,23 +47,14 @@ public class ImageUtils {
             File imageFile = new File(albumDir, "coverImage.png");
             File iconFile = new File(albumDir, "coverIcon.png");
 
-            if(!imageFile.getParentFile().exists()) {
-                try{
-                    imageFile.getParentFile().createNewFile();
-                    imageFile.getParentFile().mkdirs();
-                } catch(IOException e) {
-                    LOGGER.warning("Failed to create new image dir: " + e.getMessage());
-                }
-            }
-
             BufferedImage extractedArt = null;
 
             if(!imageFile.exists()) {
-                LOGGER.warning("No cover image files found, generating new image. Path:" + album.imagePath());
+                logger.error("No cover image files found at '{}', generating new image", album.imagePath());
                 try {
                     imageFile.createNewFile();
                 } catch (IOException e) {
-                    LOGGER.warning("Failed to create new image file: " + e.getMessage());
+                    logger.error("Failed to create new image file at '{}' : {}", imageFile.getPath(), e.getMessage());
                 }
 
                 try{
@@ -71,20 +63,20 @@ public class ImageUtils {
                     BufferedImage coverBufferedImage = resizeBufferedImage(extractedArt, 600, 600);
                     ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", imageFile);
                 } catch (Exception e) {
-                    LOGGER.warning("Error while writing cover image file for album: " + album.title() + " Error: " + e.getCause());
+                    logger.error("Failed to write image at '{}' : {}", imageFile.getPath(), e.getMessage());
                     continue;
                 }
 
-                LOGGER.info("Generated cover image for " + album.title());
+                logger.info("Generated cover image for '{}'", album.title());
             }
 
             if(!iconFile.exists()) {
-                LOGGER.warning("No cover icon files found, generating new icon. Path:" + album.iconPath());
+                logger.error("No cover icon files found at '{}', generating new image", album.imagePath());
                 try {
                     iconFile.getParentFile().mkdirs();
                     iconFile.createNewFile();
                 } catch (IOException e) {
-                    LOGGER.warning("Failed to create new image file: " + e.getMessage());
+                    logger.error("Failed to create new icon file at '{}' : {}", iconFile.getPath(), e.getMessage());
                 }
 
                 try {
@@ -96,45 +88,57 @@ public class ImageUtils {
                             coverBufferedImage = resizeBufferedImage(extractedArt, 20, 20);
                     ImageIO.write(makeRoundedCorner(coverBufferedImage, 2), "png", iconFile);
                 } catch (Exception e) {
-                    LOGGER.warning("Error while writing cover icon file for album: " + album.title() + " Error: " + e.getCause());
+                    logger.error("Failed to write icon at '{}' : {}", iconFile.getPath(), e.getMessage());
                     continue;
                 }
 
-                LOGGER.info("Generated cover icon for " + album.title());
+                logger.info("Generated cover icon for '{}'", album.title());
             }
         }
 
-        LOGGER.info("Album art has been refreshed");
+        logger.info("Album art has been refreshed");
+    }
+
+    public static void deleteArt() {
+        logger.info("Deleting art cache");
+
+        File dir = ResourceHandler.getResourceFile("cache/album-art");
+        File[] files = dir.listFiles();
+        if(files == null) return;
+
+        for(File f : files) {
+            f.delete();
+        }
     }
 
     public static void refreshPlaylistArt() {
-        LOGGER.info("Refreshing playlist art...");
+        logger.info("Refreshing playlist art...");
 
         File playlistDir = ResourceHandler.getResourceFile("cache/playlist-art");
         if(!playlistDir.exists() || !playlistDir.isDirectory()) {
-            LOGGER.warning("Playlist directory does not exist or is not a directory. Path:" + playlistDir.getAbsolutePath());
+            logger.error("Playlist directory does not exist or is not a directory '{}'", playlistDir.getAbsolutePath());
             return;
         }
 
-        for(PlaylistDataHandler.Playlist playlist : PlaylistDataHandler.getPlaylists()) {
-            File playlistFolder = new File(playlistDir, playlist.getName().toLowerCase().replace(' ', '-').trim());
-            if(!playlistFolder.exists() || !playlistFolder.isDirectory()) {
-                if(playlistFolder.mkdirs()) {
-                    LOGGER.info("Created playlist folder: " + playlistFolder.getAbsolutePath());
-                } else {
-                    LOGGER.warning("Failed to create playlist folder: " + playlistFolder.getAbsolutePath());
-                }
-            }
-        }
+        // for(Playlist playlist : PlaylistDataHandler.getPlaylists()) {
+        //     File playlistFolder = new File(playlistDir, playlist.getName().toLowerCase().replace(' ', '-').trim());
+        //     if(!playlistFolder.exists() || !playlistFolder.isDirectory()) {
+        //         if(playlistFolder.mkdirs()) {
+        //             logger.info("Created playlist folder at '{}'", playlistFolder.getAbsolutePath());
+        //         } else {
+        //             logger.error("Failed to create playlist folder at {}", playlistFolder.getAbsolutePath());
+        //         }
+        //     }
+        // }
 
         // TODO: Generate image from top 4 songs if no image is provided
 
-        LOGGER.info("Playlist art has been refreshed.");
+        logger.info("Playlist art has been refreshed.");
     }
 
-    // This method is pretty slow so try to use it as little as possible
+    // This method is pretty slow, so try to use it as little as possible
     public static BufferedImage bufferedImageFromSong(String songPath) throws Exception {
-        LOGGER.info("Getting image from song path: " + songPath);
+        logger.debug("Getting image from '{}'", songPath);
         AudioFile audioFile = AudioFileIO.read(new File(songPath));
         FlacTag tag = (FlacTag) audioFile.getTag();
         if(tag == null || tag.getImages().isEmpty()) {
@@ -146,7 +150,7 @@ public class ImageUtils {
     }
 
     public static Image pathToImage(String path) {
-        LOGGER.info("Getting image for: " + path);
+        logger.debug("Getting image from '{}'", path);
         return new Image(ResourceHandler.getResourceURL(path).toString(), true);
     }
 
