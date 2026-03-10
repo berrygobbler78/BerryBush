@@ -3,6 +3,7 @@ module com.berrygobbler.flacplayer {
     requires javafx.fxml;
     requires javafx.media;
     requires javafx.graphics;
+    requires javafx.swing;
 
     requires org.controlsfx.controls;
     requires java.desktop;
@@ -18,8 +19,8 @@ module com.berrygobbler.flacplayer {
     requires JavaMediaTransportControls;
     requires com.electronwill.nightconfig.core;
     requires jdk.compiler;
-    requires javafx.swing;
     requires org.apache.logging.log4j;
+    requires org.apache.logging.log4j.core;
 
 
     opens com.berrygobbler78.flacplayer.configuration to com.electronwill.nightconfig.core;
@@ -27,8 +28,9 @@ module com.berrygobbler.flacplayer {
     opens com.berrygobbler78.flacplayer.controllers to javafx.fxml;
     exports com.berrygobbler78.flacplayer;
     exports com.berrygobbler78.flacplayer.controllers to javafx.fxml;
+    opens com.berrygobbler78.flacplayer.util.handlers to javafx.fxml;
     exports com.berrygobbler78.flacplayer.util;
     opens com.berrygobbler78.flacplayer.util to javafx.fxml;
     exports com.berrygobbler78.flacplayer.util.handlers;
-    opens com.berrygobbler78.flacplayer.util.handlers to javafx.fxml;
+    exports com.berrygobbler78.flacplayer.util.records;
 }
