@@ -20,11 +20,11 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 
 
 ### FIXES:
-- [ ] Fix playlists
 - [ ] Gapless playback
 - [ ] Polish volume control (Threading)
 - [ ] Scrollbar retains position after refreshing songlist
 - [ ] Fix UI resizing
+- [ ] Consolidate CSS theming
 
 ### ROADMAP
 - [ ] Color pick-able UI
@@ -49,6 +49,8 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 - [x] Switch to TOML data storage
 - [x] Fix MPRIS
 - [x] Add sorting for treeview
+- [x] Migrate to Log4j
+- [x] Fix playlists
 
 ## Credits:
 - I am using some Icon8 icons for my buttons, they're great.
