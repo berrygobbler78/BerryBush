@@ -2,10 +2,12 @@ package com.berrygobbler78.flacplayer.controllers;
 
 import com.berrygobbler78.flacplayer.*;
 import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler.Playlist;
 import com.berrygobbler78.flacplayer.util.Constants;
 import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.MusicPlayer;
+import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
+import com.berrygobbler78.flacplayer.util.records.Album;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -36,19 +38,23 @@ public class SongItemController implements Initializable {
    private PreviewTabController previewTabController;
 
    private Constants.PARENT_TYPE parentType;
+   private Album album;
+   private Playlist playlist;
 
    private MusicPlayer musicPlayer;
 
+   private final MenuItem empty = new MenuItem("(empty)");
+
    @Override
    public void initialize(URL location, ResourceBundle resources) {
+       empty.setDisable(true);
+       playlistMenu.getItems().add(empty);
 
    }
 
-   public void setItemInfo(int songNumber, Song song, Constants.PARENT_TYPE parentType) {
+   public void setItemInfo(int songNumber, Song song) {
        logger.debug("Settings item info for '{}'", song.title());
-
        this.song = song;
-       this.parentType = parentType;
 
        songNumberLabel.setText(String.valueOf(songNumber));
        songAlbumIV.setImage(ImageUtils.pathToImage(song.album().imagePath()));
@@ -59,27 +65,51 @@ public class SongItemController implements Initializable {
        }
 
        playlistMenu.setOnShowing(_ -> {
-           for(Playlist playlist : PlaylistDataHandler.getPlaylists()) {
+           if(RecordHandler.getPlaylistList().isEmpty()) return;
+           playlistMenu.getItems().clear();
+           for(Playlist playlist : RecordHandler.getPlaylistList()) {
                CheckMenuItem playlistMenuItem = getCheckMenuItem(song.path(), playlist);
+                   if(playlist.songs().contains(song)) playlistMenuItem.setSelected(true);
+                   playlistMenuItem.selectedProperty().addListener((_, wasSelected, isSelected) -> {
+                       if (isSelected) {
+                           playlist.songs().add(song);
+                           PlaylistDataHandler.save(playlist);
+                       }
+                       if(wasSelected) {
+                           playlist.songs().remove(song);
+                           PlaylistDataHandler.save(playlist);
+                           previewTabController.refreshSongs();
+                       }
+                   });
                playlistMenu.getItems().add(playlistMenuItem);
            }
        });
    }
 
-   private static CheckMenuItem getCheckMenuItem(String songPath, Playlist playlist) {
-       CheckMenuItem playlistMenuItem = new CheckMenuItem(playlist.getName());
+   void setAlbum(Album album) {
+       this.album = album;
+       parentType = Constants.PARENT_TYPE.ALBUM;
+   }
 
-       if(playlist.getSongs().contains(songPath)) {
+    void setPlaylist(Playlist playlist) {
+        this.playlist = playlist;
+        parentType = Constants.PARENT_TYPE.PLAYLIST;
+    }
+
+   private static CheckMenuItem getCheckMenuItem(String songPath, Playlist playlist) {
+       CheckMenuItem playlistMenuItem = new CheckMenuItem(playlist.title());
+
+       if(playlist.songs().contains(songPath)) {
            playlistMenuItem.setSelected(true);
        }
 
-       playlistMenuItem.setOnAction(_ -> {
-           if(playlistMenuItem.isSelected() && !playlist.getSongs().contains(songPath)) {
-               playlist.addSong(songPath);
-           } else if(playlist.getSongs().contains(songPath)) {
-               playlist.removeSong(songPath);
-           }
-       });
+       // playlistMenuItem.setOnAction(_ -> {
+       //     if(playlistMenuItem.isSelected() && !playlist.getSongs().contains(songPath)) {
+       //         playlist.addSong(songPath);
+       //     } else if(playlist.getSongs().contains(songPath)) {
+       //         playlist.removeSong(songPath);
+       //     }
+       // });
 
        return playlistMenuItem;
    }
@@ -93,9 +123,10 @@ public class SongItemController implements Initializable {
 
    @FXML
    private void playSong() {
+       logger.info("Play '{}' pressed", song.title());
        switch(parentType) {
            case PLAYLIST:
-               // musicPlayer.setPlaylist(play);
+               musicPlayer.setPlaylist(playlist);
                break;
            case ALBUM:
                musicPlayer.setAlbum(song.album());
