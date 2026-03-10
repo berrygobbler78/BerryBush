@@ -1,10 +1,10 @@
 package com.berrygobbler78.flacplayer.controllers;
 
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TabManager {
     private static final Logger logger = LogManager.getLogger();
@@ -34,15 +35,6 @@ public class TabManager {
             this.tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
             this.tabPane.setTabMaxWidth(125);
             this.tabPane.setFocusTraversable(true);
-            this.tabPane.getSelectionModel().selectedItemProperty().addListener(
-                    (_, _, t1) -> {
-                        try {
-                            tabControllerMap.get(t1).refreshSongs();
-                        } catch (Exception e) {
-                            logger.error("Couldn't refresh song list for tab '{}'", t1.getText());
-                        }
-                    }
-            );
     }
 
     public void openSelected(TreeItem<String> selectedItem) {
@@ -50,8 +42,6 @@ public class TabManager {
             logger.error("Selected item was null, returning...");
             return;
         }
-
-        logger.info("Opening tab for '{}'", selectedItem.getValue());
 
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getText().equals(selectedItem.getValue())) {
@@ -90,11 +80,17 @@ public class TabManager {
                     previewTab.setContent(previewNode);
                     previewTab.setGraphic(new ImageView(ImageUtils.pathToImage(album.iconPath())));
 
+
                 PreviewTabController previewTabController = loader.getController();
                     previewTabController.setMainController(controller);
                     previewTabController.setAlbumValues(album);
-                    previewTabController.refreshSongs();
                     previewTabController.setPaused(true);
+
+                previewTab.setOnSelectionChanged(_ -> {
+                    if(previewTab.isSelected()) {
+                        previewTabController.refreshSongs();
+                    }
+                });
 
                 tabPane.getTabs().add(previewTab);
                 tabPane.getSelectionModel().select(previewTab);
@@ -110,7 +106,7 @@ public class TabManager {
             if(selectedItem.getValue().equals(ti.getValue()) && selectedItem.getGraphic() == ti.getGraphic()) {
                 logger.debug("Found playlist match for selected item");
 
-                PlaylistDataHandler.Playlist playlist = controller.getTreeManager().getPlaylistMap().get(ti);
+                Playlist playlist = controller.getTreeManager().getPlaylistMap().get(ti);
 
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(ResourceHandler.getResourceURL("fxml/previewTab.fxml"));
@@ -131,8 +127,13 @@ public class TabManager {
                 PreviewTabController previewTabController = loader.getController();
                 previewTabController.setMainController(controller);
                 previewTabController.setPlaylistValues(playlist);
-                previewTabController.refreshSongs();
                 previewTabController.setPaused(true);
+
+                previewTab.setOnSelectionChanged(_ -> {
+                    if(previewTab.isSelected()) {
+                        previewTabController.refreshSongs();
+                    }
+                });
 
                 tabPane.getTabs().add(previewTab);
                 tabPane.getSelectionModel().select(previewTab);
@@ -157,5 +158,21 @@ public class TabManager {
         }
 
         logger.error("Unknown item selected : '{}'", selectedItem.getValue());
+    }
+
+    public void removeTab(PreviewTabController tab) {
+        Tab tabToRemove = null;
+
+        for (Map.Entry<Tab, PreviewTabController> entry : tabControllerMap.entrySet()) {
+            if (entry.getValue().equals(tab)) {
+                tabToRemove = entry.getKey();
+                break;
+            }
+        }
+
+        if (tabToRemove != null) {
+            tabControllerMap.remove(tabToRemove);
+            tabPane.getTabs().remove(tabToRemove);
+        }
     }
 }
