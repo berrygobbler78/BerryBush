@@ -55,7 +55,7 @@ public class MediaTransportHandler {
                 if (coverArt != null && !songTitle.equals(currentSong)) {
                     currentSong = songTitle;
 
-                    // Create temp file for artwork
+                    // Create a temp file for artwork
                     File temp = File.createTempFile("currentArt", ".tmp");
                     temp.deleteOnExit(); // automatically clean up on exit
 
