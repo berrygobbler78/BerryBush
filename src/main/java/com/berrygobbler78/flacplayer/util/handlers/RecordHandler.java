@@ -1,10 +1,14 @@
 package com.berrygobbler78.flacplayer.util.handlers;
 
+import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import com.berrygobbler78.flacplayer.util.FileUtils;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
+import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
@@ -12,62 +16,59 @@ import org.jaudiotagger.tag.Tag;
 
 import java.io.File;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RecordHandler {
-    private static final Logger LOGGER = Logger.getLogger(RecordHandler.class.getName());
+    private static final Logger logger = LogManager.getLogger();
 
-    static {
-        Logger.getLogger("org.jaudiotagger").setLevel(Level.SEVERE);
-    }
-
-    private static final List<Artist> ARTIST_LIST = Collections.synchronizedList(new ArrayList<>());;
-    private static final List<Album> ALBUM_LIST = Collections.synchronizedList(new ArrayList<>());;
-    private static final List<Song> SONG_LIST = Collections.synchronizedList(new ArrayList<>());;
+    private static final List<Artist> ARTIST_LIST = Collections.synchronizedList(new ArrayList<>());
+    private static final List<Album> ALBUM_LIST = Collections.synchronizedList(new ArrayList<>());
+    private static final List<Song> SONG_LIST = Collections.synchronizedList(new ArrayList<>());
+    private static final List<Playlist> PLAYLIST_LIST = Collections.synchronizedList(new ArrayList<>());
 
     public static List<Artist> getArtistList() {
         return ARTIST_LIST;
     }
-
     public static List<Album> getAlbumList() {
         return ALBUM_LIST;
     }
-
     public static List<Song> getSongList() {
         return SONG_LIST;
     }
+    public static List<Playlist> getPlaylistList() {
+        return PLAYLIST_LIST;
+    }
 
     public static void cache() {
-        LOGGER.info("Caching...");
+        logger.info("Caching...");
 
         ARTIST_LIST.clear();
         ALBUM_LIST.clear();
         SONG_LIST.clear();
+        PLAYLIST_LIST.clear();
 
         File rootDir = new File(UserDataHandler.getPath());
         if(!rootDir.exists() || !rootDir.isDirectory()) {
-            LOGGER.severe("Root directory does not exist or is not a directory. Path:" + rootDir.getAbsolutePath());
+            logger.fatal("Root directory does not exist or is not a directory at '{}'", rootDir.getAbsolutePath());
             return;
         }
 
         File[] artistFolders = rootDir.listFiles(FileUtils.FILTER_TYPE.FOLDER.get());
         if(artistFolders == null || artistFolders.length == 0) {
-            LOGGER.severe("No artist files found. Path:" + rootDir.getAbsolutePath());
+            logger.fatal("No artist files found at '{}'", rootDir.getAbsolutePath());
             return;
         }
 
         for (File artistFolder : artistFolders) {
             File[] albumFolders = artistFolder.listFiles(FileUtils.FILTER_TYPE.FOLDER.get());
             if(albumFolders == null || albumFolders.length == 0) {
-                LOGGER.warning("No album files found. Path:" + artistFolder.getAbsolutePath());
+                logger.error("No album files found at '{}'", artistFolder.getAbsolutePath());
                 continue;
             }
 
             for (File albumFolder : albumFolders) {
                 File[] songFiles = albumFolder.listFiles(FileUtils.FILTER_TYPE.FLAC.get());
                 if(songFiles == null || songFiles.length == 0) {
-                    LOGGER.warning("Song files not found. Path:" + albumFolder.getAbsolutePath());
+                    logger.error("Song files not found at '{}'", albumFolder.getAbsolutePath());
                     continue;
                 }
 
@@ -164,9 +165,9 @@ public class RecordHandler {
                             SONG_LIST.add(song);
                         }
 
-                        // LOGGER.info(song.title() + " added to " + album.title() + " with artist " + artist.name());
+                        logger.debug("'{}' added to '{}' with artist '{}'", song.title(), album.title(), artist.name());
                     } catch (Exception e) {
-                        LOGGER.warning("Failed to read metadata for: " + songFile.getPath());
+                        logger.error("Failed to read metadata from '{}'", songFile.getPath());
                     }
                 }
             }
@@ -176,8 +177,10 @@ public class RecordHandler {
             a.songs().sort(Comparator.comparingInt(Song::track));
         }
 
-        LOGGER.info("Cache has been refreshed");
+        PlaylistDataHandler.initialize();
+
+        PLAYLIST_LIST.addAll(PlaylistDataHandler.getPlaylists());
+
+        logger.info("Cache has been refreshed");
     }
-
-
 }
