@@ -1,8 +1,7 @@
 package com.berrygobbler78.flacplayer.controllers;
 
-import com.berrygobbler78.flacplayer.App;
 import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler.Playlist;
+import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -21,7 +20,7 @@ public class PopupWindowsController {
 
    @FXML
    private void enterPlaylistName(){
-       PlaylistDataHandler.createPlaylist(playlistNameField.getText(), null);
+       PlaylistDataHandler.createPlaylist(playlistNameField.getText(), UserDataHandler.getUsername(), null);
        stage.close();
 
        controller.refreshTreeView();
