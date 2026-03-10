@@ -2,11 +2,7 @@ package com.berrygobbler78.flacplayer;
 
 import java.io.*;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-//import com.berrygobbler78.flacplayer.userdata.Playlist;
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
 import com.berrygobbler78.flacplayer.util.Constants;
 import com.berrygobbler78.flacplayer.util.FileUtils;
@@ -27,11 +23,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.WizardPane;
 
 public class App extends Application {
-    private static final Logger LOGGER = Logger.getLogger(App.class.getName());
+    private static final Logger logger = LogManager.getLogger();
 
     private static Stage primaryStage;
 
@@ -44,68 +42,49 @@ public class App extends Application {
 
     private static OS currentOS;
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
-    switch (System.getProperty("os.name")) {
-        case "Linux" -> currentOS = OS.LINUX;
-        case "Windows 10" -> currentOS = OS.WINDOWS_10;
-        case "Windows 11" -> currentOS = OS.WINDOWS_11;
-        case "Mac" -> currentOS = OS.MAC;
-    }
+        java.util.logging.Logger.getLogger("org.jaudiotagger").setLevel(java.util.logging.Level.SEVERE);
 
-    deleteTempFile();
+        switch (System.getProperty("os.name")) {
+            case "Linux" -> currentOS = OS.LINUX;
+            case "Windows 10" -> currentOS = OS.WINDOWS_10;
+            case "Windows 11" -> currentOS = OS.WINDOWS_11;
+            case "Mac" -> currentOS = OS.MAC;
+        }
 
-    ResourceHandler.initialize();
-    UserDataHandler.initialize();
-    PlaylistDataHandler.initialize();
+        ResourceHandler.initialize();
+        UserDataHandler.initialize();
 
-    if(UserDataHandler.getPath().equals(File.separator)  || UserDataHandler.getUsername().equals(".")) setupWizard();
+        if(UserDataHandler.getPath().equals(File.separator)  || UserDataHandler.getUsername().equals(".")) setupWizard();
 
-    RecordHandler.cache();
+        RecordHandler.cache();
 
-    FXMLLoader fxmlLoader =
-           new FXMLLoader(ResourceHandler.getResourceURL("fxml/revised.fxml"));
+        FXMLLoader fxmlLoader =
+               new FXMLLoader(ResourceHandler.getResourceURL("fxml/revised.fxml"));
 
-    Scene scene = new Scene(fxmlLoader.load());
-    scene.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm());
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm());
 
-    primaryStage = stage;
-       primaryStage.setTitle("BerryBush");
-       primaryStage.setScene(scene);
-       primaryStage.getIcons().add(Constants.IMAGES.BERRIES.get());
-       primaryStage.show();
-       primaryStage.setOnCloseRequest(_ -> MediaTransportHandler.shutdown());
+        primaryStage = stage;
+           primaryStage.setTitle("BerryBush");
+           primaryStage.setScene(scene);
+           primaryStage.getIcons().add(Constants.IMAGES.BERRIES.get());
+           primaryStage.show();
+           primaryStage.setOnCloseRequest(_ -> MediaTransportHandler.shutdown());
 
-    if(currentOS == OS.WINDOWS_11) {
-       Win11ThemeWindowManager themeWindowManager =
-               (Win11ThemeWindowManager) ThemeWindowManagerFactory.create(); // For coloring window border
-       themeWindowManager.setWindowFrameColor(primaryStage, Color.web("#121212"));
-       themeWindowManager.setDarkModeForWindowFrame(primaryStage, true);
-    }
+        if(currentOS == OS.WINDOWS_11) {
+           Win11ThemeWindowManager themeWindowManager =
+                   (Win11ThemeWindowManager) ThemeWindowManagerFactory.create(); // For coloring the window border
+           themeWindowManager.setWindowFrameColor(primaryStage, Color.web("#121212"));
+           themeWindowManager.setDarkModeForWindowFrame(primaryStage, true);
+        }
 
-    LOGGER.info("Stage created.");
+        logger.info("Stage created.");
     }
 
     public static Stage getPrimaryStage() {
         return primaryStage;
-    }
-
-    static void deleteTempFile() {
-        try{
-            File tempFile = ResourceHandler.getResourceFile("cache/temp.wav");
-
-            if(tempFile.delete()) {
-                LOGGER.log(Level.INFO, "Deleted temp file.");
-            } else {
-                LOGGER.log(Level.WARNING, "Failed to delete temp file.");
-            }
-        } catch(NullPointerException e) {
-            LOGGER.log(Level.INFO, "Temp file does not exist.");
-        }
     }
 
     static void setupWizard() {
