@@ -3,7 +3,7 @@
     <option name="ALTERNATIVE_JRE_PATH" value="21" />
     <option name="MAIN_CLASS_NAME" value="com.berrygobbler78.flacplayer.App" />
     <module name="flac-player" />
-    <option name="VM_PARAMETERS" value="--enable-preview" />
+    <option name="VM_PARAMETERS" value="--enable-preview --enable-native-access=javafx.media" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
