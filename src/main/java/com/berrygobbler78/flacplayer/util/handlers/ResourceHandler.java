@@ -1,14 +1,15 @@
 package com.berrygobbler78.flacplayer.util.handlers;
 
 import com.berrygobbler78.flacplayer.App;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 public class ResourceHandler {
-    private static final Logger LOGGER =  Logger.getLogger(ResourceHandler.class.getName());
+    private static final Logger logger = LogManager.getLogger();
     private static File resourcesFile;
 
     public static void initialize() throws URISyntaxException, NullPointerException {
@@ -24,13 +25,13 @@ public class ResourceHandler {
         if(cache == null) {
             File cacheFile = new File(resourcesFile, "cache");
             if(cacheFile.mkdirs()) {
-                LOGGER.info("Created new cache file with path: " + cacheFile.getAbsolutePath());
+                logger.debug("Created new cache file at '{}'", cacheFile.getAbsolutePath());
                 cache = App.class.getResource("cache");
             }
         }
 
         if(cache == null) {
-            LOGGER.severe("CACHE IS NULL! UH OH!");
+            logger.fatal("CACHE IS NULL! UH OH!");
             throw new NullPointerException("Cache directory is null");
         }
 
@@ -38,7 +39,7 @@ public class ResourceHandler {
         if(playlists == null) {
             File cacheFile = new File(new File(cache.toURI()), "playlists");
             if(cacheFile.mkdirs()) {
-                LOGGER.info("Created new playlists file with path: " + cacheFile.getAbsolutePath());
+                logger.debug("Created new playlists file at '{}'", cacheFile.getAbsolutePath());
             }
         }
 
@@ -46,7 +47,7 @@ public class ResourceHandler {
         if(albumArt == null) {
             File cacheFile = new File(new File(cache.toURI()), "album-art");
             if(cacheFile.mkdirs()) {
-                LOGGER.info("Created new album-art file with path: " + cacheFile.getAbsolutePath());
+                logger.debug("Created new artist-art file at '{}'", cacheFile.getAbsolutePath());
             }
         }
 
@@ -54,7 +55,7 @@ public class ResourceHandler {
         if(playlistArt == null) {
             File cacheFile = new File(new File(cache.toURI()), "playlist-art");
             if(cacheFile.mkdirs()) {
-                LOGGER.info("Created new playlist-art file with path: " + cacheFile.getAbsolutePath());
+                logger.debug("Created new playlist-art file at '{}'", cacheFile.getAbsolutePath());
             }
         }
     }
@@ -63,29 +64,25 @@ public class ResourceHandler {
         return resourcesFile;
     }
 
-    public static URL getResourceURL(String resource) throws NullPointerException{
+    public static URL getResourceURL(String resource) {
         URL resourceURL = App.class.getResource(resource);
         if(resourceURL == null) {
-            LOGGER.warning("Failed to acquire resource URL: " + resource);
-            throw new NullPointerException();
+            logger.error("Failed to acquire resource URL with input '{}'", resource);
+            return null;
         }
 
         return resourceURL;
     }
 
-    public static File getResourceFile(String resource) throws NullPointerException{
+    public static File getResourceFile(String resource) {
         URL resourceURL = getResourceURL(resource);
 
         try {
-            return new File(resourceURL.toURI());
+            return new File(resourceURL != null ? resourceURL.toURI() : null);
 
-        } catch (URISyntaxException e) {
-            LOGGER.warning("Failed to acquire resource file: " + resource + "Error: " + e);
-            throw new NullPointerException();
+        } catch (URISyntaxException | NullPointerException e) {
+            logger.error("Failed to acquire resource file with input '{}'", resource);
+            return null;
         }
-    }
-
-    public static String getResourcesPath(String resource) {
-        return getResourceURL(resource).getPath();
     }
 }
