@@ -2,38 +2,24 @@ package com.berrygobbler78.flacplayer.util;
 
 import com.berrygobbler78.flacplayer.App;
 
-import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
-import com.berrygobbler78.flacplayer.util.records.Song;
+import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FileUtils {
-    private static final Logger LOGGER = Logger.getLogger(FileUtils.class.getName());
+    private static final Logger logger = LogManager.getLogger();
+
     private static final FlacDecoder DECODER = new FlacDecoder();
-
-    static {
-        Logger.getLogger("org.jaudiotagger").setLevel(Level.SEVERE);
-    }
-
-    private static final ArrayList<Song> songList = new ArrayList<>();
-
-    public enum FILE_TYPE{
-        SONG,
-        ALBUM,
-        ARTIST,
-        PLAYLIST
-    }
 
     public enum FILTER_TYPE {
         FOLDER(File::isDirectory),
@@ -63,20 +49,20 @@ public class FileUtils {
             return (value == null || value.isBlank()) ? "Unknown" : value;
 
         } catch (Exception e) {
-            LOGGER.warning("Failed to read metadata for: " + song.getPath());
+            logger.error("Failed to read metadata for '{}' : {}", song.getPath(), e.getMessage());
             return "Unknown";
         }
     }
 
     public static File flacToWav(String fileIn) throws IOException {
-        LOGGER.info("Starting decoding for: " + fileIn);
-        File temp = File.createTempFile("current", ".wav");
-        temp.deleteOnExit();
+        logger.debug("Starting decoding at {}", fileIn);
+        File cache = ResourceHandler.getResourceFile("cache");
+        File tempFile = new File(cache, "temp.wav");
 
-        DECODER.flacToWav(fileIn, temp.getAbsolutePath());
-        LOGGER.info("Done!");
+        DECODER.flacToWav(fileIn, tempFile.getAbsolutePath());
+        logger.debug("Finished decoding");
 
-        return temp;
+        return tempFile;
     }
 
     public static File fileChooser(Stage stage, String title, String directoryPath, String extensionDesc, String extension) {
@@ -106,7 +92,7 @@ public class FileUtils {
                 case WINDOWS_11 -> Runtime.getRuntime().exec(new String[]{"explorer.exe", "/select,", path});
             }
         } catch (IOException e) {
-            LOGGER.warning("Failed to open file explorer for path: " + path);
+            logger.error("Failed to open file explorer for '{}' : {}", path, e.getMessage());
         }
     }
 
