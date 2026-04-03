@@ -1,6 +1,5 @@
-package com.berrygobbler78.flacplayer.util.handlers;
+package com.berrygobbler78.flacplayer.music;
 
-import com.berrygobbler78.flacplayer.util.MusicPlayer;
 import io.github.selemba1000.*;
 import javafx.concurrent.Task;
 
@@ -19,17 +18,18 @@ public class MediaTransportHandler {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    public MediaTransportHandler(String playerName, String playerPath, MusicPlayer musicPlayer) {
+    public MediaTransportHandler(String playerName, String playerPath, PlaybackManager playbackManager, QueueManager queueManager) {
         jmtc = JMTC.getInstance(new JMTCSettings(playerName, playerPath));
+        if(playbackManager == null) return;
 
         JMTCCallbacks callbacks = new JMTCCallbacks();
-        callbacks.onPlay = musicPlayer::play;
-        callbacks.onPause = musicPlayer::pause;
-        callbacks.onStop = musicPlayer::stop;
-        callbacks.onNext = musicPlayer::next;
-        callbacks.onPrevious = musicPlayer::previous;
-        callbacks.onLoop = _ -> musicPlayer.cycleRepeatStatus();
-        callbacks.onShuffle = _ -> musicPlayer.toggleShuffleStatus();
+        callbacks.onPlay = playbackManager::play;
+        callbacks.onPause = playbackManager::pause;
+        callbacks.onStop = playbackManager::stop;
+        callbacks.onNext = playbackManager::next;
+        callbacks.onPrevious = playbackManager::previous;
+        callbacks.onLoop = _ -> queueManager.cycleRepeatStatus();
+        callbacks.onShuffle = _ -> queueManager.toggleShuffleStatus();
 
 
         jmtc.setCallbacks(callbacks);
@@ -38,14 +38,21 @@ public class MediaTransportHandler {
                 "Unknown", "Unknown Artist", "Unknown Album", "Unknown Artist",
                 new String[]{}, 1, 1, null
         ));
-        jmtc.setEnabled(true);
-        jmtc.setEnabledButtons(new JMTCEnabledButtons(true, true, true, true, true));
-        jmtc.updateDisplay();
+    }
+
+    public void setEnabled(boolean enabled) {
+        if(enabled) {
+            jmtc.setEnabled(true);
+            jmtc.setEnabledButtons(new JMTCEnabledButtons(true, true, true, true, true));
+            jmtc.updateDisplay();
+        }
     }
 
     public void setProperties(String songTitle, String songArtist,
                               String parentTitle, String parentArtist,
                               int tracks, int index, File coverArt) {
+
+        if(jmtc.getEnabled() == false) setEnabled(true);
 
         Task<Void> update = new Task<>() {
             @Override
@@ -72,7 +79,7 @@ public class MediaTransportHandler {
                         songArtist,
                         parentTitle,
                         parentArtist,
-                        new String[]{},  // genres can be added here
+                        new String[]{},  //  TODO: Add genres
                         tracks,
                         index,
                         artworkFile
@@ -84,6 +91,7 @@ public class MediaTransportHandler {
         };
 
         executor.submit(update);
+        jmtc.updateDisplay();
     }
 
     public void setTimeline(long start, long end, long seekStart, long seekEnd) {
@@ -94,10 +102,6 @@ public class MediaTransportHandler {
     public void setState(JMTCPlayingState state) {
         jmtc.setPlayingState(state);
         jmtc.updateDisplay();
-    }
-
-    public void setEnabled(boolean enabled) {
-        jmtc.setEnabled(enabled);
     }
 
     public static void shutdown() {
