@@ -8,32 +8,28 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 
 ## Instructions:
 1. Set up a directory
-2. Rip your files. 
-   1. I use EAC (Easy Audio Copy), with the MusicBrainz Metadata Plugin for metadata. (You will want metadata to show images). 
-   My EAC profile is under resources.com.berrygobbler78.flacplayer. 
-   2. Use the format: [track2digits - title.flac]. E.g: 01 - Silly Music Vol.1.flac .
-3. Run the app and select your base directory and username. You can change it later in the settings. If at any time the userdata is messed up, it will prompt you to pick a new directory and username.
-4. Playlists!
+2. Run the app and select your base directory and username. You can change it later in the settings. If at any time the userdata is messed up, it will prompt you to pick a new directory and username.
+3. Playlists (Needs to be reimplemented)!
    1. You can make playlists with the plus button in the explorer. 
    2. Images can be added under resources/graphics/playlist-art/name-of-playlist.png Art will automatically be added when refreshing the explorer.
    3. To add a song, select the menu button next to a song in the preview tab and go to Playlists > Your Playlist Name
 
 
-### FIXES:
-- [ ] Gapless playback
+### FIXES BEFORE V1.0:
 - [ ] Polish volume control (Threading)
-- [ ] Scrollbar retains position after refreshing songlist
 - [ ] Fix UI resizing
-- [ ] Consolidate CSS theming
+- [ ] Playlist art
+- [ ] Reimplement features lost during gui redo
+- [ ] Multiple discs is unsupported
 
 ### ROADMAP
 - [ ] Color pick-able UI
 - [ ] Musicbrainz integration
 - [ ] Show songs in queue
+- [ ] Built in CD-ripper
 - [ ] Edit file tagging (change image, name, artist, etc)
 - [ ] Home page
 - [ ] Change background picture
-- [ ] Artist images
 - [ ] Artist pages
 - [ ] Playback speed
 - [ ] Support for other file types
@@ -42,6 +38,9 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 
 ### Completed  ✓
 - [x] Shuffling
+- [x] Tracks aren't ordered correctly
+- [x] Artist images
+- [x] Consolidate CSS theming
 - [x] Fix the window
 - [x] Search feature
 - [x] Setup wizard
@@ -51,6 +50,9 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 - [x] Add sorting for treeview
 - [x] Migrate to Log4j
 - [x] Fix playlists
+- [x] Switching to open tabs has become broken
+- [x] Gapless playback
+- [x] Scrollbar retains position after refreshing songlist
 
 ## Credits:
 - I am using some Icon8 icons for my buttons, they're great.
