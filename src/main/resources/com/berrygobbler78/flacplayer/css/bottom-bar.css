@@ -1,18 +1,22 @@
+@import "root.css";
+
 .jfx-slider > .track {
     -fx-background-color: #B9B9B9;
 }
 
 /* Styling the slider thumb */
 .jfx-slider > .thumb {
+    transition-property: -fx-scale-x, -fx-scale-y;
+    transition-duration: 0.3s;
     -fx-background-color: white;
-    -fx-scale-x: 0.8;
-    -fx-scale-y: 0.8;
+    -fx-scale-x: 0.75;
+    -fx-scale-y: 0.75;
     -fx-opacity: 100;
 }
 /* Styling the filled track */
 .jfx-slider > .colored-track {
     -fx-background-color: white;
-    -fx-scale-y: 2.5;
+    -fx-scale-y: 2;
     -fx-background-radius: 10;
 }
 
@@ -29,11 +33,11 @@
 
 .jfx-slider:hover > .colored-track,
 .jfx-slider:pressed > .colored-track{
-    -fx-background-color: #115400;;
+    -fx-background-color: -fx-primary;
 }
 
 /* Styling the slider value text inside animated thumb */
 .jfx-slider .slider-value {
-    -fx-fill: white;
-    -fx-stroke: white;
+    -fx-fill: transparent;
+    -fx-stroke: transparent;
 }
