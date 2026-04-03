@@ -1,18 +1,23 @@
-package com.berrygobbler78.flacplayer.controllers;
+package com.berrygobbler78.flacplayer;
 
-import com.berrygobbler78.flacplayer.configuration.PlaylistDataHandler;
 import com.berrygobbler78.flacplayer.configuration.UserDataHandler;
-import com.berrygobbler78.flacplayer.util.Constants;
+import com.berrygobbler78.flacplayer.controllers.LandingController;
 import com.berrygobbler78.flacplayer.util.ImageUtils;
 import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
+import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
-import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
+import javafx.animation.RotateTransition;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.scene.Node;
+import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.util.Duration;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,7 +26,7 @@ import java.util.*;
 public class TreeManager {
     private static final Logger logger = LogManager.getLogger();
 
-    private final MainController CONTROLLER;
+    private final LandingController controller;
 
     private final TreeView<String> TREE_VIEW;
     private final TreeItem<String> DEFAULT_ROOT = new TreeItem<>();
@@ -29,7 +34,6 @@ public class TreeManager {
     private final HashMap<TreeItem<String>, Artist> ARTIST_MAP = new HashMap<>();
     private final HashMap<TreeItem<String>, Album> ALBUM_MAP = new HashMap<>();
     private final HashMap<TreeItem<String>, Song> SONG_MAP = new HashMap<>();
-    private final HashMap<TreeItem<String>, Playlist> PLAYLIST_MAP = new HashMap<>();
 
     public enum SortingType {
         ALPHABETICAL,
@@ -42,16 +46,74 @@ public class TreeManager {
 
     private  TreeItem<String> userItem = new TreeItem<>(UserDataHandler.getUsername());
 
-    public TreeManager(MainController controller, TreeView<String> treeView) {
-        this.CONTROLLER = controller;
+    public TreeManager(LandingController controller, TreeView<String> treeView) {
+        this.controller = controller;
         this.TREE_VIEW = treeView;
-            TREE_VIEW.setOnMouseClicked(event -> {
-                if(event.getButton().equals(MouseButton.PRIMARY)){
-                    if(event.getClickCount() == 2){
-                        CONTROLLER.selectPreview();
+
+        TREE_VIEW.setOnMouseClicked(event -> {
+            Album album = ALBUM_MAP.get(TREE_VIEW.getSelectionModel().getSelectedItem());
+        });
+
+        TREE_VIEW.setCellFactory(_ -> new TreeCell<>() {
+            private ChangeListener<? super Boolean> expandedListener;
+            private TreeItem<String> lastItem;
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                // Remove listener from previous item
+                if (lastItem != null && expandedListener != null) {
+                    lastItem.expandedProperty().removeListener(expandedListener);
+                }
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    lastItem = null;
+                } else {
+                    setText(item);
+                    TreeItem<String> treeItem = getTreeItem();
+                    lastItem = treeItem;
+
+                    if (treeItem != null) {
+                        setGraphic(treeItem.getGraphic());
+
+                        // Listener for smooth expansion transition
+                        expandedListener = (obs, wasExpanded, isExpanded) -> {
+                            Node disclosureNode = lookup(".disclosure-node");
+                            if (disclosureNode != null) {
+                                RotateTransition rt = new RotateTransition(Duration.millis(200), disclosureNode);
+                                if (isExpanded) {
+                                    rt.setFromAngle(0);
+                                    rt.setToAngle(90);
+                                } else {
+                                    rt.setFromAngle(90);
+                                    rt.setToAngle(0);
+                                }
+                                rt.play();
+                            }
+                        };
+
+                        treeItem.expandedProperty().addListener(expandedListener);
+
+                        // Initial state of disclosure node
+                        Node disclosureNode = lookup(".disclosure-node");
+                        if (disclosureNode != null) {
+                            disclosureNode.setRotate(treeItem.isExpanded() ? 90 : 0);
+                        } else {
+                            // If disclosure node is not found yet, wait for layout to set initial rotation
+                            Platform.runLater(() -> {
+                                Node dn = lookup(".disclosure-node");
+                                if (dn != null) {
+                                    dn.setRotate(treeItem.isExpanded() ? 90 : 0);
+                                }
+                            });
+                        }
                     }
                 }
-            });
+            }
+        });
 
         refresh();
     }
@@ -83,12 +145,6 @@ public class TreeManager {
             }
         }
 
-        for(TreeItem<String> item : PLAYLIST_MAP.keySet()){
-            if(item.getValue().toLowerCase().contains(query.toLowerCase())){
-                searchRoot.getChildren().add(copyTreeItem(item));
-            }
-        }
-
         if(userItem.getValue().toLowerCase().contains(query.toLowerCase())){
             searchRoot.getChildren().add(copyTreeItem(userItem));
         }
@@ -99,25 +155,11 @@ public class TreeManager {
     public void refresh() {
         logger.info("Refreshing tree view...");
 
-        ImageUtils.refreshAllArt(false);
-
         ARTIST_MAP.clear();
         ALBUM_MAP.clear();
         SONG_MAP.clear();
 
         DEFAULT_ROOT.getChildren().clear();
-
-        TreeItem<String> userItem = new TreeItem<>(UserDataHandler.getUsername(), new ImageView(Constants.IMAGES.USER.get()));
-        for (Playlist playlist : PlaylistDataHandler.getPlaylists()) {
-            TreeItem<String> playlistItem = new TreeItem<>(playlist.title());
-            PLAYLIST_MAP.put(playlistItem, playlist);
-
-            userItem.getChildren().add(playlistItem);
-        }
-
-        this.userItem = userItem;
-        DEFAULT_ROOT.getChildren().add(userItem);
-
 
         for (Artist artist : RecordHandler.getArtistList()) {
             TreeItem<String> artistItem = null;
@@ -132,7 +174,7 @@ public class TreeManager {
             }
 
             if (artistItem == null) {
-                artistItem = new TreeItem<>(artist.name(), new ImageView(Constants.IMAGES.CD.get()));
+                artistItem = new TreeItem<>(artist.name(), new ImageView(new Image(String.valueOf(ResourceHandler.getResourceURL("graphics/sidebar/cd.png")), 20, 20, false, false)));
                 DEFAULT_ROOT.getChildren().add(artistItem);
                 ARTIST_MAP.put(artistItem, artist);
             }
@@ -151,17 +193,13 @@ public class TreeManager {
                 if (albumItem == null) {
                     albumItem = new TreeItem<>(
                             album.title(),
-                            new ImageView(ImageUtils.pathToImage(album.iconPath()))
+                            new ImageView(ImageUtils.pathToImage(album.artPath()))
                     );
 
                     artistItem.getChildren().add(albumItem);
                     ALBUM_MAP.put(albumItem, album);
                 }
             }
-        }
-
-        for(Song s : RecordHandler.getSongList()) {
-            SONG_MAP.put(new TreeItem<>(s.title(), new ImageView(Constants.IMAGES.SONG.get())), s);
         }
 
         TREE_VIEW.setRoot(DEFAULT_ROOT);
@@ -203,10 +241,6 @@ public class TreeManager {
         }
 
         TREE_VIEW.refresh();
-    }
-
-    public HashMap<TreeItem<String>, Playlist> getPlaylistMap() {
-        return PLAYLIST_MAP;
     }
 
     public HashMap<TreeItem<String>, Album> getAlbumMap() {
