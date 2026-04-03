@@ -1,178 +1,105 @@
 package com.berrygobbler78.flacplayer.controllers;
 
-import com.berrygobbler78.flacplayer.util.ImageUtils;
+import com.berrygobbler78.flacplayer.EffectsEngine;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
-import com.berrygobbler78.flacplayer.util.records.Artist;
-import com.berrygobbler78.flacplayer.util.records.Playlist;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TreeItem;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TabManager {
     private static final Logger logger = LogManager.getLogger();
 
-    private final MainController controller;
+    private LandingController landingController;
+    private SearchPageController searchPageController;
+
     private final TabPane tabPane;
 
-    public static HashMap<Tab, PreviewTabController> tabControllerMap = new HashMap<>();
+    // Default pages
+    private Tab search, library, home, cdTools;
 
-    public TabManager(MainController controller, TabPane tabPane) {
-        logger.debug("{} created", TabManager.class.getName());
-
-        this.controller = controller;
+    public TabManager(LandingController landingController, StackPane contentContainer, TabPane tabPane, Tab home, Tab search, Tab library, Tab cdTools) {
+        this.landingController = landingController;
         this.tabPane = tabPane;
-            this.tabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-            this.tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
-            this.tabPane.setTabMaxWidth(125);
-            this.tabPane.setFocusTraversable(true);
+
+        this.home = home;
+        this.search = search;
+        this.library = library;
+        this.cdTools = cdTools;
+
+        for(Tab t : tabPane.getTabs()) {
+            EffectsEngine.setPressedEffect(t);
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(ResourceHandler.getResourceURL("fxml/searchPage.fxml"));
+            Node node = loader.load();
+
+            AnchorPane.setTopAnchor(node, 0.0);
+            AnchorPane.setBottomAnchor(node, 0.0);
+            AnchorPane.setLeftAnchor(node, 0.0);
+            AnchorPane.setRightAnchor(node, 0.0);
+
+            search.setContent(node);
+
+            searchPageController = loader.getController();
+            searchPageController.setTabManager(this);
+        } catch (Exception e) {
+            logger.error("Failed to load search page: {}", e.getMessage());
+        }
+
+        tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+            Tab newTab = tabPane.getTabs().get(newIdx.intValue());
+            Node newContent = newTab.getContent();
+
+            if (newContent != null) {
+                double startY = (newIdx.intValue() > oldIdx.intValue()) ? 200 : -200;
+                newContent.setTranslateY(startY);
+
+                TranslateTransition tt = new TranslateTransition(Duration.millis(250), newContent);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
     }
 
-    public void openSelected(TreeItem<String> selectedItem) {
-        if(selectedItem == null) {
-            logger.error("Selected item was null, returning...");
-            return;
-        }
+    public void newAlbumPage(Album album) {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(ResourceHandler.getResourceURL("fxml/albumPage.fxml"));
+            Node node = loader.load();
 
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab.getText().equals(selectedItem.getValue())) {
-                logger.debug("Tab '{}' already open", tab.getText());
-                return;
-            }
-        }
+            AnchorPane.setTopAnchor(node, 0.0);
+            AnchorPane.setBottomAnchor(node, 0.0);
+            AnchorPane.setLeftAnchor(node, 0.0);
+            AnchorPane.setRightAnchor(node, 0.0);
 
-        for(TreeItem<String> ti : controller.getTreeManager().getSongMap().keySet()) {
-            if(selectedItem.getValue().equals(ti.getValue()) && selectedItem.getGraphic() == ti.getGraphic()) {
-                logger.debug("Found song match for selected item");
-                controller.getMusicPlayer().loadSong(controller.getTreeManager().getSongMap().get(ti), true);
-                return;
-            }
-        }
+            Tab albumTab = new Tab();
+            albumTab.setContent(node);
+            albumTab.setGraphic(new ImageView(new Image(
+                    String.valueOf(ResourceHandler.getResourceURL(album.artPath())),
+                    20, 20,
+                    false, false)));
 
-        for(TreeItem<String> ti : controller.getTreeManager().getAlbumMap().keySet()) {
-            if(selectedItem.getValue().equals(ti.getValue()) && selectedItem.getGraphic() == ti.getGraphic()) {
-                logger.debug("Found album match for selected item");
+            AlbumPageController albumPageController = loader.getController();
+            albumPageController.setAlbum(album);
 
-                Album album = controller.getTreeManager().getAlbumMap().get(ti);
-
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(ResourceHandler.getResourceURL("fxml/previewTab.fxml"));
-
-                Node previewNode;
-
-                try{
-                    previewNode = loader.load();
-                } catch (IOException e) {
-                    logger.error("Could not load preview fxml : {}", e.getMessage());
-                    return;
-                }
-
-                Tab previewTab = new Tab(selectedItem.getValue());
-                    previewTab.setContent(previewNode);
-                    previewTab.setGraphic(new ImageView(ImageUtils.pathToImage(album.iconPath())));
-
-
-                PreviewTabController previewTabController = loader.getController();
-                    previewTabController.setMainController(controller);
-                    previewTabController.setAlbumValues(album);
-                    previewTabController.setPaused(true);
-
-                previewTab.setOnSelectionChanged(_ -> {
-                    if(previewTab.isSelected()) {
-                        previewTabController.refreshSongs();
-                    }
-                });
-
-                tabPane.getTabs().add(previewTab);
-                tabPane.getSelectionModel().select(previewTab);
-
-                if(!tabControllerMap.containsKey(previewTab)) {
-                    tabControllerMap.put(previewTab, previewTabController);
-                }
-                return;
-            }
-        }
-
-        for(TreeItem<String> ti : controller.getTreeManager().getPlaylistMap().keySet()) {
-            if(selectedItem.getValue().equals(ti.getValue()) && selectedItem.getGraphic() == ti.getGraphic()) {
-                logger.debug("Found playlist match for selected item");
-
-                Playlist playlist = controller.getTreeManager().getPlaylistMap().get(ti);
-
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(ResourceHandler.getResourceURL("fxml/previewTab.fxml"));
-
-                Node previewNode;
-
-                try{
-                    previewNode = loader.load();
-                } catch (IOException e) {
-                    logger.error("Could not load preview fxml : {}", e.getMessage());
-                    return;
-                }
-
-                Tab previewTab = new Tab(selectedItem.getValue());
-                previewTab.setContent(previewNode);
-                // previewTab.setGraphic(new ImageView(ImageUtils.pathToImage(playlist.iconPath())));
-
-                PreviewTabController previewTabController = loader.getController();
-                previewTabController.setMainController(controller);
-                previewTabController.setPlaylistValues(playlist);
-                previewTabController.setPaused(true);
-
-                previewTab.setOnSelectionChanged(_ -> {
-                    if(previewTab.isSelected()) {
-                        previewTabController.refreshSongs();
-                    }
-                });
-
-                tabPane.getTabs().add(previewTab);
-                tabPane.getSelectionModel().select(previewTab);
-
-                if(!tabControllerMap.containsKey(previewTab)) {
-                    tabControllerMap.put(previewTab, previewTabController);
-                }
-                return;
-            }
-        }
-
-        for(TreeItem<String> ti : controller.getTreeManager().getArtistMap().keySet()) {
-            if(selectedItem.getValue().equals(ti.getValue()) && selectedItem.getGraphic() == ti.getGraphic()) {
-                logger.debug("Found artist match for selected item");
-
-                Artist artist = controller.getTreeManager().getArtistMap().get(ti);
-
-                logger.error("Unimplemented artist page feature");
-
-                return;
-            }
-        }
-
-        logger.error("Unknown item selected : '{}'", selectedItem.getValue());
-    }
-
-    public void removeTab(PreviewTabController tab) {
-        Tab tabToRemove = null;
-
-        for (Map.Entry<Tab, PreviewTabController> entry : tabControllerMap.entrySet()) {
-            if (entry.getValue().equals(tab)) {
-                tabToRemove = entry.getKey();
-                break;
-            }
-        }
-
-        if (tabToRemove != null) {
-            tabControllerMap.remove(tabToRemove);
-            tabPane.getTabs().remove(tabToRemove);
+            tabPane.getTabs().add(albumTab);
+            tabPane.getSelectionModel().select(albumTab);
+        } catch (Exception e) {
+            logger.error("Failed to load album page: {}", e.getMessage());
         }
     }
 }
