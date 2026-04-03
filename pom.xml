@@ -162,6 +162,11 @@
                 <option>java.base/java.lang=ALL-UNNAMED</option>
                 <option>--enable-native-access</option>
                 <option>javafx.graphics</option>
+                <option>--add-exports</option>
+                <option>javafx.graphics/com.sun.javafx.tk.quantum=com.pixelduke.fxthemes</option>
+                <option>--add-opens</option>
+                <option>java.base/java.lang=ALL-UNNAMED</option>
+                <option>--enable-native-access=javafx.graphics</option>
               </options>
             </configuration>
           </execution>
