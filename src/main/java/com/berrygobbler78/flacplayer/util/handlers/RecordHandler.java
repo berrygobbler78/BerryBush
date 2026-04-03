@@ -100,6 +100,11 @@ public class RecordHandler {
                             track = trackStr.matches("\\d+") ? Integer.parseInt(trackStr) : 0;
                         }
 
+                        int disc;
+                        String discStr = tag.getFirst(FieldKey.DISC_NO);
+                        discStr = (discStr == null || discStr.isBlank()) ? "1" : discStr;
+                        disc = Integer.parseInt(discStr);
+
                         Artist artist = null;
                         for(Artist a : ARTIST_LIST) {
                             if (a.name().equals(artistStr)) {
@@ -112,8 +117,7 @@ public class RecordHandler {
                             artist = new Artist(
                                     artistStr,
                                     new ArrayList<>(),
-                                    null,
-                                    null
+                                    "cache/artist-art/" + FileUtils.makeFolderSafe(artistStr) + "/art.png"
                             );
 
                             ARTIST_LIST.add(artist);
@@ -136,8 +140,7 @@ public class RecordHandler {
                                     albumStr,
                                     artist,
                                     new ArrayList<>(),
-                                    cachePath + "coverIcon.png",
-                                    cachePath + "coverImage.png"
+                                    cachePath + "art.png"
                             );
 
                             artist.albums().add(album);
@@ -158,6 +161,7 @@ public class RecordHandler {
                                     album,
                                     artist,
                                     track,
+                                    disc,
                                     songFile.getPath()
                             );
 
