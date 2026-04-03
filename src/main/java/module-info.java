@@ -33,4 +33,6 @@ module com.berrygobbler.flacplayer {
     opens com.berrygobbler78.flacplayer.util to javafx.fxml;
     exports com.berrygobbler78.flacplayer.util.handlers;
     exports com.berrygobbler78.flacplayer.util.records;
+    exports com.berrygobbler78.flacplayer.music;
+    opens com.berrygobbler78.flacplayer.music to javafx.fxml;
 }
