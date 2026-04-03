@@ -1,0 +1,82 @@
+@import url("root.css");
+
+.tab-pane {
+    -fx-open-tab-animation: grow;
+    -fx-close-tab-animation: grow;
+    -fx-background-color: -fx-background;
+}
+
+.tab-header-area {
+    -fx-background-color: transparent;
+    -fx-padding: 11 11 0 11;
+}
+
+.tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-content-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0 11 11 11;
+}
+
+.tab {
+    -fx-background-color: -fx-background;
+    -fx-background-radius: 5;
+    -fx-padding: 1;
+}
+
+.tab-pane:focused .tab-header-area .headers-region .tab:selected .focus-indicator {
+    -fx-border-width: 0;
+    -fx-border-insets: 0 0 0 0;
+    -fx-border-radius: 0;
+}
+
+.tab:selected {
+    -fx-background-color: -fx-primary;
+}
+
+.tab:hover {
+    -fx-background-color: -fx-secondary;
+}
+
+.header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-fill: -fx-text;
+    -fx-spacing: 5;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0px;
+}
+
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: -fx-text;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.scroll-pane .scroll-bar:hover .thumb {
+    -fx-background-color: -fx-primary;
+}
+
+.scroll-pane .scroll-bar:selected .thumb {
+    -fx-background-color: -fx-primary;
+}
+
+.scroll-pane .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .track {
+    -fx-background-color: transparent;
+}
+
+.bottom-button {
+    -fx-fit-to-height: 10px;
+    -fx-fit-to-width: 10px;
+}
+
+

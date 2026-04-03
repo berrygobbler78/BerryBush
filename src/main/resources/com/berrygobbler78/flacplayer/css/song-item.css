@@ -1,0 +1,13 @@
+@import "root.css";
+
+.play-button {
+    -fx-opacity: 0;
+}
+
+.play-button:hover {
+    -fx-opacity: 1;
+}
+
+.play-button:hover > .album-art{
+    -fx-opacity: 0.5;
+}

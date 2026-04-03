@@ -1,0 +1,64 @@
+.root {
+    -fx-background: #0F0F0F;
+    -fx-secondary: #191919;
+    -fx-primary: #2f5e22;
+    -fx-text: #ededed;
+}
+
+.menu-button .label{
+    -fx-text-fill: -fx-text;
+}
+
+.menu-button > .arrow-button {
+    -fx-padding: 0;
+}
+
+.menu-button > .arrow-button > .arrow {
+    -fx-padding: 0;
+}
+
+.menu-button {
+    -fx-background-color: transparent;
+}
+
+.layer-background {
+    -fx-background-color: -fx-background;
+}
+
+.layer-secondary {
+    -fx-background-color: -fx-secondary;
+}
+
+.layer-primary {
+    -fx-background-color: -fx-primary;
+}
+
+.header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-fill: -fx-text;
+    -fx-spacing: 5;
+}
+
+.text {
+    -fx-font-size: 12px;
+    -fx-fill: -fx-text;
+}
+
+.context-menu {
+    -fx-background-color: -fx-secondary;
+    -fx-border-color: -fx-secondary;
+    -fx-border-radius: 5;
+}
+
+.context-menu .menu-item:hover, .context-menu .menu-item:focused {
+    -fx-background-color: -fx-primary;
+    -fx-background-radius: 5;
+}
+
+.text-field {
+    -fx-background-color: -fx-secondary;
+    -fx-border-color: -fx-secondary;
+    -fx-border-radius: 5;
+    -fx-text-fill: -fx-text;
+}
