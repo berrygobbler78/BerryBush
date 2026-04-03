@@ -28,13 +28,14 @@ public class PlaylistDataHandler {
     public static void loadPlaylists() {
         logger.info("Loading playlists...");
 
-        File[] playlistFileArray;
-        try {
-            playlistFileArray = ResourceHandler.getResourceFile("cache/playlists").listFiles(f -> f.getName().endsWith(".toml"));
-        } catch (NullPointerException e) {
-            logger.error("No playlist directory exists : {}", e.getMessage());
+        File playlistDir = ResourceHandler.getResourceFile("cache/playlists");
+        if(playlistDir == null) {
+            logger.error("No playlist directory exists");
             return;
         }
+
+        File[] playlistFileArray ;
+        playlistFileArray = playlistDir.listFiles(f -> f.getName().endsWith(".toml"));
 
         if(playlistFileArray == null) {
             logger.info("Playlist directory is empty, returning...");
@@ -55,10 +56,12 @@ public class PlaylistDataHandler {
 
                 setIfMissing(fileCfg, "name", "Unknown Title");
                 setIfMissing(fileCfg, "user", "Unknown User");
+                setIfMissing(fileCfg, "art-path", "");
                 setIfMissing(fileCfg, "songs", new ArrayList<>());
 
                 String name = fileCfg.get("name");
                 String user = fileCfg.get("user");
+                String art = fileCfg.get("art");
                 List<String> songPaths = fileCfg.get("songs");
 
                 List<Song> songs = new ArrayList<>();
@@ -72,7 +75,7 @@ public class PlaylistDataHandler {
                         songs.add(s);
                     }
                 }
-                Playlist p = new Playlist(name, user, songs, fileCfg.getFile().getPath(),null, null);
+                Playlist p = new Playlist(name, user, songs, art,null, null);
 
                 PLAYLIST_CONFIG_MAP.put(p, fileCfg);
 
@@ -97,7 +100,7 @@ public class PlaylistDataHandler {
         if(songs == null) songs = new ArrayList<>();
         File file = new File(ResourceHandler.getResourceFile("cache/playlists"), FileUtils.makeFolderSafe(name) + ".toml");
         try {
-            file.createNewFile();
+            if(file.createNewFile()) logger.info("Created new playlist file at '{}'", file.getPath());
         } catch (IOException e) {
             logger.error("Failed to create new file with path '{}' : {}", file.getPath(), e.getMessage());
             return;
@@ -117,7 +120,9 @@ public class PlaylistDataHandler {
     }
 
     public static void removePlaylist(Playlist playlist) {
-        new File(playlist.path()).delete();
+        if(PLAYLIST_CONFIG_MAP.get(playlist).getFile().delete()) logger.info("Deleted playlist file at '{}'", playlist.path());
+        PLAYLIST_CONFIG_MAP.remove(playlist);
+        RecordHandler.cache();
     }
 
     public static void save(Playlist playlist) {
@@ -125,6 +130,7 @@ public class PlaylistDataHandler {
             fileCfg.load();
             fileCfg.set("name", playlist.title());
             fileCfg.set("user", playlist.author());
+            fileCfg.set("art", playlist.path());
             fileCfg.set("songs", playlist.songs().stream().map(Song::path).toList());
             fileCfg.save();
         }
