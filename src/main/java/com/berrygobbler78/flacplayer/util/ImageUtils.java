@@ -3,6 +3,7 @@ package com.berrygobbler78.flacplayer.util;
 import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
 import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
+import com.berrygobbler78.flacplayer.util.records.Artist;
 import javafx.scene.image.Image;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,13 +25,56 @@ public class ImageUtils {
 
     public static void refreshAllArt(boolean force) {
         refreshAlbumArt(force);
+        refreshArtistArt(force);
         refreshPlaylistArt();
+    }
+
+    public static void refreshArtistArt(boolean force) {
+        logger.info("Refreshing artist art...");
+
+        if(force) deleteArt(false, true);
+        File dir = ResourceHandler.getResourceFile("cache/artist-art");
+
+        for(Artist artist : RecordHandler.getArtistList()) {
+            File artistDir = new File(dir, FileUtils.makeFolderSafe(artist.name()));
+            if(!artistDir.exists()) {
+                artistDir.mkdirs();
+            }
+
+            File[] files = artistDir.listFiles(f -> f.getName().endsWith(".png") || f.getName().endsWith(".jpg"));
+            if(files == null || files.length == 0) continue;
+
+            if(files.length > 1) {
+                logger.warn("More than one image found for artist '{}', using first one", artist.name());
+            }
+
+            BufferedImage image = bufferedImageFromPath(files[0].getAbsolutePath());
+            if(image == null) continue;
+
+            image = resizeBufferedImage(image, 600, 600);
+            image = makeRoundedCorner(image, 50);
+
+            try {
+                ImageIO.write(image, "png", new File(artistDir, "art.png"));
+            } catch (IOException e) {
+                logger.error("Failed to write image at '{}' : {}", files[0].getAbsolutePath(), e.getMessage());
+            }
+        }
+
     }
 
     public static void refreshAlbumArt(boolean force) {
         logger.info("Refreshing album art...");
 
-        if(force) deleteArt();
+        if(force) deleteArt(true, false);
+
+        for(Artist artist : RecordHandler.getArtistList()) {
+            File dir = ResourceHandler.getResourceFile("cache/artist-art");
+            File artistDir = new File(dir, FileUtils.makeFolderSafe(artist.name()));
+            if(!artistDir.exists()) {
+                artistDir.mkdirs();
+            }
+        }
 
         for(Album album : RecordHandler.getAlbumList()) {
             File dir = ResourceHandler.getResourceFile("cache/album-art");
@@ -44,13 +88,12 @@ public class ImageUtils {
                 albumDir.mkdirs();
             }
 
-            File imageFile = new File(albumDir, "coverImage.png");
-            File iconFile = new File(albumDir, "coverIcon.png");
+            File imageFile = new File(albumDir, "art.png");
 
-            BufferedImage extractedArt = null;
+            BufferedImage extractedArt;
 
             if(!imageFile.exists()) {
-                logger.error("No cover image files found at '{}', generating new image", album.imagePath());
+                logger.error("No cover image files found at '{}', generating new image", album.artPath());
                 try {
                     imageFile.createNewFile();
                 } catch (IOException e) {
@@ -69,45 +112,48 @@ public class ImageUtils {
 
                 logger.info("Generated cover image for '{}'", album.title());
             }
-
-            if(!iconFile.exists()) {
-                logger.error("No cover icon files found at '{}', generating new image", album.imagePath());
-                try {
-                    iconFile.getParentFile().mkdirs();
-                    iconFile.createNewFile();
-                } catch (IOException e) {
-                    logger.error("Failed to create new icon file at '{}' : {}", iconFile.getPath(), e.getMessage());
-                }
-
-                try {
-                    if (extractedArt == null) {
-                        extractedArt = bufferedImageFromSong(album.songs().getFirst().path());
-                    }
-                    BufferedImage
-
-                            coverBufferedImage = resizeBufferedImage(extractedArt, 20, 20);
-                    ImageIO.write(makeRoundedCorner(coverBufferedImage, 2), "png", iconFile);
-                } catch (Exception e) {
-                    logger.error("Failed to write icon at '{}' : {}", iconFile.getPath(), e.getMessage());
-                    continue;
-                }
-
-                logger.info("Generated cover icon for '{}'", album.title());
-            }
         }
 
         logger.info("Album art has been refreshed");
     }
 
-    public static void deleteArt() {
+    public static void deleteArt(boolean album, boolean artist) {
         logger.info("Deleting art cache");
 
-        File dir = ResourceHandler.getResourceFile("cache/album-art");
-        File[] files = dir.listFiles();
-        if(files == null) return;
+        if(artist) {
+            File dir = ResourceHandler.getResourceFile("cache/artist-art");
+            if(dir == null) {
+                logger.error("No artist art directory exists");
+                return;
+            }
 
-        for(File f : files) {
-            f.delete();
+            File[] files = dir.listFiles();
+            if(files == null) return;
+
+            for(File f : files) {
+                if(f.delete()) {
+                    logger.debug("Deleted artist file: {}", f.getName());
+                }
+            }
+
+        }
+
+        if(album) {
+            File dir = ResourceHandler.getResourceFile("cache/album-art");
+            if(dir == null) {
+                logger.error("No album art directory exists");
+                return;
+            }
+
+            File[] files = dir.listFiles();
+            if(files == null) return;
+
+            for(File f : files) {
+                if(f.delete()) {
+                    logger.debug("Deleted album file: {}", f.getName());
+                }
+            }
+
         }
     }
 
@@ -115,7 +161,7 @@ public class ImageUtils {
         logger.info("Refreshing playlist art...");
 
         File playlistDir = ResourceHandler.getResourceFile("cache/playlist-art");
-        if(!playlistDir.exists() || !playlistDir.isDirectory()) {
+        if(playlistDir == null || !playlistDir.isDirectory()) {
             logger.error("Playlist directory does not exist or is not a directory '{}'", playlistDir.getAbsolutePath());
             return;
         }
@@ -151,7 +197,12 @@ public class ImageUtils {
 
     public static Image pathToImage(String path) {
         logger.debug("Getting image from '{}'", path);
-        return new Image(ResourceHandler.getResourceURL(path).toString(), true);
+        try{
+            return new Image(ResourceHandler.getResourceURL(path).toString(), true);
+        } catch (NullPointerException e) {
+            logger.error("Failed to grab image : {}", e.getMessage());
+            return new Image(ResourceHandler.getResourceURL("graphics/warning.png").toString(), true);
+        }
     }
 
     public static BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius) {
@@ -182,5 +233,14 @@ public class ImageUtils {
         g2d.dispose();
 
         return bi;
+    }
+
+    public static BufferedImage bufferedImageFromPath(String path) {
+        try {
+            return ImageIO.read(new File(path));
+        } catch (IOException e) {
+            logger.error("Failed to read image from path: {}", path);
+            return null;
+        }
     }
 }
