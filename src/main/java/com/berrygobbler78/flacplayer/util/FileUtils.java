@@ -19,8 +19,6 @@ import java.io.*;
 public class FileUtils {
     private static final Logger logger = LogManager.getLogger();
 
-    private static final FlacDecoder DECODER = new FlacDecoder();
-
     public enum FILTER_TYPE {
         FOLDER(File::isDirectory),
         FLAC(f -> f.getName().toLowerCase().endsWith(".flac")),
@@ -57,9 +55,10 @@ public class FileUtils {
     public static File flacToWav(String fileIn) throws IOException {
         logger.debug("Starting decoding at {}", fileIn);
         File cache = ResourceHandler.getResourceFile("cache");
-        File tempFile = new File(cache, "temp.wav");
+        File tempFile = File.createTempFile("temp", ".wav", cache);
+        tempFile.deleteOnExit();
 
-        DECODER.flacToWav(fileIn, tempFile.getAbsolutePath());
+        new FlacDecoder().flacToWav(fileIn, tempFile.getAbsolutePath());
         logger.debug("Finished decoding");
 
         return tempFile;
@@ -87,7 +86,7 @@ public class FileUtils {
 
     public static void openFileExplorer(String path) {
         try {
-            switch (App.getCurrentOS()) {
+            switch (App.getOS()) {
                 case LINUX -> Runtime.getRuntime().exec(new String[]{"xdg-open", path});
                 case WINDOWS_11 -> Runtime.getRuntime().exec(new String[]{"explorer.exe", "/select,", path});
             }
