@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXSlider?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.LandingController">
+   <children>
+      <BorderPane layoutX="62.0" layoutY="85.0" prefHeight="400.0" prefWidth="600.0" styleClass="main-layout" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <bottom>
+            <StackPane prefHeight="53.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Line StackPane.alignment="TOP_CENTER" />
+                  <BorderPane prefHeight="200.0" prefWidth="200.0">
+                     <left>
+                        <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" BorderPane.alignment="CENTER">
+                           <children>
+                              <ImageView fx:id="currentArt" fitHeight="65.0" fitWidth="70.0" pickOnBounds="true" preserveRatio="true" />
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0">
+                                 <children>
+                                    <Label fx:id="currentTitle" styleClass="header" text="Label" />
+                                    <Label fx:id="currentArtist" styleClass="text" text="Label" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </left>
+                  </BorderPane>
+                  <VBox prefHeight="71.0" prefWidth="600.0" spacing="5.0">
+                     <children>
+                        <HBox alignment="CENTER" spacing="10.0">
+                           <children>
+                              <ImageView fx:id="shuffleImageView" fitHeight="150.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true" styleClass="bottom-button">
+                                 <image>
+                                    <Image url="@../graphics/playback/shuffle.png" />
+                                 </image>
+                              </ImageView>
+                              <ImageView fx:id="previousImageView" fitHeight="150.0" fitWidth="35.0" pickOnBounds="true" preserveRatio="true" styleClass="bottom-button">
+                                 <image>
+                                    <Image url="@../graphics/playback/previous.png" />
+                                 </image>
+                              </ImageView>
+                              <ImageView fx:id="playPauseImageView" fitHeight="150.0" fitWidth="35.0" pickOnBounds="true" preserveRatio="true" styleClass="bottom-button">
+                                 <image>
+                                    <Image url="@../graphics/playback/play.png" />
+                                 </image>
+                              </ImageView>
+                              <ImageView fx:id="nextImageView" fitHeight="150.0" fitWidth="35.0" pickOnBounds="true" preserveRatio="true" styleClass="bottom-button">
+                                 <image>
+                                    <Image url="@../graphics/playback/next.png" />
+                                 </image>
+                              </ImageView>
+                              <ImageView fx:id="repeatImageView" fitHeight="150.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true" styleClass="bottom-button">
+                                 <image>
+                                    <Image url="@../graphics/playback/repeat.png" />
+                                 </image>
+                              </ImageView>
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER" prefHeight="20.0" prefWidth="600.0">
+                           <children>
+                              <JFXSlider prefHeight="16.0" prefWidth="289.0" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </StackPane>
+         </bottom>
+         <center>
+            <StackPane fx:id="contentContainer" prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <children>
+                  <TabPane fx:id="navigationBar" side="LEFT" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="30.0" tabMaxWidth="100.0" tabMinHeight="30.0" tabMinWidth="50.0">
+                    <tabs>
+                      <Tab>
+                           <graphic>
+                              <ImageView fitHeight="150.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/sidebar/home.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Tab>
+                      <Tab fx:id="searchTab">
+                           <graphic>
+                              <ImageView fitHeight="150.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/sidebar/search.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Tab>
+                        <Tab>
+                           <graphic>
+                              <ImageView fitHeight="150.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/sidebar/library.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Tab>
+                        <Tab>
+                           <graphic>
+                              <ImageView fitHeight="150.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../graphics/sidebar/cd.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </Tab>
+                    </tabs>
+                  </TabPane>
+               </children>
+            </StackPane>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>
