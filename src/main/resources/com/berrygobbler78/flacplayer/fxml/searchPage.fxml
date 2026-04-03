@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+
+<VBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.SearchPageController">
+   <children>
+      <HBox alignment="CENTER">
+         <children>
+            <MenuButton fx:id="filterSelector1" mnemonicParsing="false" text="Sort">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Action 1" />
+                  <MenuItem mnemonicParsing="false" text="Action 2" />
+               </items>
+            </MenuButton>
+            <TextField fx:id="searchBar" prefHeight="26.0" prefWidth="472.0" promptText="Search library..." HBox.hgrow="ALWAYS" />
+            <MenuButton fx:id="filterSelector" mnemonicParsing="false" text="Filters">
+              <items>
+                <MenuItem mnemonicParsing="false" text="Action 1" />
+                <MenuItem mnemonicParsing="false" text="Action 2" />
+              </items>
+            </MenuButton>
+         </children>
+         <VBox.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </VBox.margin>
+      </HBox>
+      <ScrollPane fx:id="mainScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+        <content>
+                  <VBox alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" />
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" />
+                        <HBox alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label alignment="CENTER" contentDisplay="CENTER" minHeight="30.0" minWidth="60.0" rotate="-90.0" styleClass="header" text="Artists" textAlignment="CENTER" HBox.hgrow="ALWAYS" />
+                              <ScrollPane fx:id="artistScrollPane" fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+                                <content>
+                                          <GridPane fx:id="artists" hgap="10.0" vgap="5.0">
+                                          </GridPane>
+                                </content>
+                              </ScrollPane>
+                           </children>
+                        </HBox>
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" VBox.vgrow="NEVER" />
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" />
+                        <HBox alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label minHeight="30.0" minWidth="60.0" rotate="-90.0" styleClass="header" text="Albums" HBox.hgrow="ALWAYS" />
+                              <ScrollPane fx:id="albumScrollPane" fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+                                 <content>
+                                     <GridPane fx:id="albums" hgap="10.0" vgap="5.0">
+                                          </GridPane>
+                                 </content>
+                              </ScrollPane>
+                           </children>
+                        </HBox>
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" />
+                        <Line endX="100.0" fill="#ededed" startX="-100.0" stroke="#ededed" />
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+        </content>
+      </ScrollPane>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" top="5.0" />
+   </padding>
+</VBox>
