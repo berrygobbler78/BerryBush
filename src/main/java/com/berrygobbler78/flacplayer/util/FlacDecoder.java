@@ -15,7 +15,7 @@ import java.io.IOException;
 public class FlacDecoder implements PCMProcessor {
     private final Logger logger = LogManager.getLogger();
 
-    private static WavWriter wav;
+    private WavWriter wav;
 
     public void flacToWav(String inPath, String outPath) {
         try (FileInputStream is = new FileInputStream(inPath); FileOutputStream os = new FileOutputStream(outPath)) {
