@@ -35,27 +35,20 @@ public class ResourceHandler {
             throw new NullPointerException("Cache directory is null");
         }
 
-        URL playlists = App.class.getResource("cache" + File.separator + "playlists");
-        if(playlists == null) {
-            File cacheFile = new File(new File(cache.toURI()), "playlists");
-            if(cacheFile.mkdirs()) {
-                logger.debug("Created new playlists file at '{}'", cacheFile.getAbsolutePath());
-            }
-        }
+        File cacheFile = new File(cache.toURI());
 
-        URL albumArt = App.class.getResource("cache" + File.separator + "albumArt");
-        if(albumArt == null) {
-            File cacheFile = new File(new File(cache.toURI()), "album-art");
-            if(cacheFile.mkdirs()) {
-                logger.debug("Created new artist-art file at '{}'", cacheFile.getAbsolutePath());
-            }
-        }
+        checkIfPresent("artist-art", "cache/artist-art", cacheFile);
+        checkIfPresent("album-art", "cache/album-art", cacheFile);
+        checkIfPresent("playlist-art", "cache/playlist-art", cacheFile);
+        checkIfPresent("playlists", "cache/playlists", cacheFile);
+    }
 
-        URL playlistArt = App.class.getResource("cache" + File.separator + "playlistArt");
-        if(playlistArt == null) {
-            File cacheFile = new File(new File(cache.toURI()), "playlist-art");
-            if(cacheFile.mkdirs()) {
-                logger.debug("Created new playlist-art file at '{}'", cacheFile.getAbsolutePath());
+    public static void checkIfPresent(String name, String inputURL, File parent) throws URISyntaxException {
+        URL resourceURL = App.class.getResource(inputURL);
+        if(resourceURL == null) {
+            File newFile = new File(parent, name);
+            if(newFile.mkdirs()) {
+                logger.debug("Created new '{}' file at '{}'", name, newFile.getAbsolutePath());
             }
         }
     }
@@ -67,7 +60,7 @@ public class ResourceHandler {
     public static URL getResourceURL(String resource) {
         URL resourceURL = App.class.getResource(resource);
         if(resourceURL == null) {
-            logger.error("Failed to acquire resource URL with input '{}'", resource);
+            logger.error("Failed to acquire resource URL with input '{}' : URL is null", resource);
             return null;
         }
 
@@ -76,12 +69,12 @@ public class ResourceHandler {
 
     public static File getResourceFile(String resource) {
         URL resourceURL = getResourceURL(resource);
+        if(resourceURL == null) return null;
 
         try {
-            return new File(resourceURL != null ? resourceURL.toURI() : null);
-
+            return new File(resourceURL.toURI());
         } catch (URISyntaxException | NullPointerException e) {
-            logger.error("Failed to acquire resource file with input '{}'", resource);
+            logger.error("Failed to acquire resource file with input '{}' : {}", resource, e.getMessage());
             return null;
         }
     }
