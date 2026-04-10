@@ -1,23 +1,47 @@
 package com.berrygobbler78.flacplayer.configuration;
 
-import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
+import com.berrygobbler78.flacplayer.util.ResourceHandler;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
+
+import static com.berrygobbler78.flacplayer.configuration.UserDataHandler.ConfigLocation.*;
 
 public class UserDataHandler {
     private static final Logger logger = LogManager.getLogger();
     private static CommentedFileConfig fileConfig;
 
-    private static final String USERNAME = "general.username";
-    private static final String PATH = "files.path";
+    public enum ConfigLocation {
+        USERNAME("general.username"),
+        PATH("files.path");
+
+        final String string;
+
+        ConfigLocation(String s) {
+            string = s;
+        }
+
+        String get() {
+            return string;
+        }
+    }
 
     public static void initialize() {
         logger.debug("Initializing {}", UserDataHandler.class.getName());
 
-        fileConfig = CommentedFileConfig.builder(new File(ResourceHandler.getRoot(), "user-data.toml"))
+        var configFile = new File(ResourceHandler.getCache(), "user-data.toml");
+        if(!configFile.exists()) {
+            try {
+                if(configFile.createNewFile()) logger.info("Created new user data config file");
+            } catch (IOException e) {
+                logger.error("Failed to create new user data config file : {}", e.getMessage());
+            }
+        }
+
+        fileConfig = CommentedFileConfig.builder(configFile)
                 .sync()
                 .autosave()
                 .autoreload()
@@ -38,11 +62,8 @@ public class UserDataHandler {
             fileConfig.clear();
         }
 
-        // General settings
-        setIfMissing(USERNAME, ".");
-
-        // Files settings
-        setIfMissing(PATH, "/");
+        setIfMissing(USERNAME.get(), ".");
+        setIfMissing(PATH.get(), "/");
 
         /*
         * n = number
@@ -62,24 +83,14 @@ public class UserDataHandler {
         }
     }
 
-    public static String getUsername() {
+    public static String getConfig(ConfigLocation location) {
         ensureInitialized();
-        return fileConfig.get(USERNAME);
+        return fileConfig.get(location.get());
     }
 
-    public static void setUsername(String username) {
+    public static <T> void setConfig(ConfigLocation location, T value) {
         ensureInitialized();
-        fileConfig.set(USERNAME, username);
-    }
-
-    public static String getPath() {
-        ensureInitialized();
-        return fileConfig.get(PATH);
-    }
-
-    public static void setPath(String path) {
-        ensureInitialized();
-        fileConfig.set(PATH, path);
+        fileConfig.set(location.get(), value);
     }
 
     private static void ensureInitialized() {
