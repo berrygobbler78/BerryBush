@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_CENTER" prefHeight="246.0" prefWidth="592.0" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.AlbumPageController">
+<VBox alignment="TOP_CENTER" prefHeight="246.0" prefWidth="592.0" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.gui.controllers.AlbumPageController">
    <children>
       <HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0">
          <children>

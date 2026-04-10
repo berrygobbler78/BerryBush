@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane styleClass="border" stylesheets="@../css/song-item.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.SongItemController">
+<BorderPane fx:id="container" styleClass="border" stylesheets="@../css/song-item.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.gui.controllers.SongItemController">
    <center>
       <HBox alignment="CENTER_LEFT" BorderPane.alignment="CENTER" HBox.hgrow="ALWAYS">
          <children>

@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Line?>
 
-<VBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.SearchPageController">
+<VBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.gui.controllers.SearchPageController">
    <children>
       <HBox alignment="CENTER">
          <children>
@@ -44,7 +44,7 @@
                               <Label alignment="CENTER" contentDisplay="CENTER" minHeight="30.0" minWidth="60.0" rotate="-90.0" styleClass="header" text="Artists" textAlignment="CENTER" HBox.hgrow="ALWAYS" />
                               <ScrollPane fx:id="artistScrollPane" fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
                                 <content>
-                                          <GridPane fx:id="artists" hgap="10.0" vgap="5.0">
+                                          <GridPane fx:id="artistContainer" hgap="10.0" vgap="5.0">
                                           </GridPane>
                                 </content>
                               </ScrollPane>
@@ -57,7 +57,7 @@
                               <Label minHeight="30.0" minWidth="60.0" rotate="-90.0" styleClass="header" text="Albums" HBox.hgrow="ALWAYS" />
                               <ScrollPane fx:id="albumScrollPane" fitToHeight="true" fitToWidth="true" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
                                  <content>
-                                     <GridPane fx:id="albums" hgap="10.0" vgap="5.0">
+                                     <GridPane fx:id="albumContainer" hgap="10.0" vgap="5.0">
                                           </GridPane>
                                  </content>
                               </ScrollPane>

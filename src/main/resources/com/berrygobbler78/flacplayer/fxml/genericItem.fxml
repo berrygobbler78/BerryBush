@@ -5,7 +5,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" spacing="1.0" style="-fx-background-radius: 10;" styleClass="vbox" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.controllers.GenericItemController">
+<VBox fx:id="mainVBox" alignment="CENTER" spacing="1.0" style="-fx-background-radius: 10;" styleClass="vbox" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.berrygobbler78.flacplayer.gui.controllers.GenericItemController">
    <children>
       <ImageView fx:id="itemImage" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
          <VBox.margin>
