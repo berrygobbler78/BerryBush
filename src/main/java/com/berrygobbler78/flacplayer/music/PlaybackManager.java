@@ -1,11 +1,10 @@
 package com.berrygobbler78.flacplayer.music;
 
+import com.berrygobbler78.flacplayer.App;
 import com.berrygobbler78.flacplayer.util.FileUtils;
-import com.berrygobbler78.flacplayer.util.records.Song;
 import io.github.selemba1000.JMTCPlayingState;
 import javafx.animation.Timeline;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
+import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -21,10 +20,8 @@ public class PlaybackManager {
 
     private final MusicInterface musicInterface;
 
-    private URI currentSongURI;
-    private URI nextSongURI;
-
-    private Song currentSong;
+    private URI currentURI;
+    private URI nextURI;
 
     private MediaPlayer currentMediaPlayer;
     private MediaPlayer nextMediaPlayer;
@@ -46,71 +43,52 @@ public class PlaybackManager {
     }
 
     public void load(boolean playOnFinish, boolean skipCurrent) {
-        Song currSong = queueManager.getCurrentSong();
-        Song nextSong = queueManager.getNextSong(false);
+        var current = queueManager.getCurrentSong();
+        var next = queueManager.getNextSong(false);
 
-        if (!skipCurrent && currSong == null) {
+        if (!skipCurrent && current == null) {
             logger.warn("No current song available to load.");
             return;
         }
 
-        Service<Void> loadCurrentService = new Service<Void>() {
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<>() {
-                    @Override
-                    protected Void call() {
-                        logger.info("Loading '{}'", currSong.title());
+        if(!skipCurrent) App.submitTask(() -> {
+            logger.debug("Loading '{}'", current.title());
 
-                        File currTemp = null;
-                        try {
-                            currTemp = FileUtils.flacToWav(currSong.path());
-                        } catch (IOException e) {
-                            cancel();
-                        }
+            try {
+                File currTemp = FileUtils.flacToWav(current.path());
 
-                        currentSongURI = currTemp.toURI();
-                        currentMediaPlayer = new MediaPlayer(new Media(currentSongURI.toString()));
-                        initMediaPlayer(currentMediaPlayer);
+                if(currentMediaPlayer != null) currentMediaPlayer.dispose();
 
-                        if (playOnFinish) play();
-                        return null;
-                    }
-                };
+                Platform.runLater(() -> {
+                    if(currentMediaPlayer != null) currentMediaPlayer.dispose();
+                    currentMediaPlayer = new MediaPlayer(new Media(currTemp.toURI().toString()));
+                    initMediaPlayer(currentMediaPlayer);
+                    if (playOnFinish) play();
+                });
+
+                logger.info("Loaded '{}' ", current.title());
+            } catch (IOException e) {
+                logger.warn("Failed to load '{}' | {}", current.title(), e.getMessage());
             }
-        };
 
-        Service<Void> loadNextService = new Service<Void>() {
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<>() {
-                    @Override
-                    protected Void call() {
+            return null;
+        });
 
-                        logger.info("Pre-loading '{}'", nextSong.title());
+        if(next != null) App.submitTask(() -> {
+            logger.debug("Pre-loading '{}'", next.title());
 
-                        File nextTemp = null;
-                        try {
-                            nextTemp = FileUtils.flacToWav(nextSong.path());
-                        } catch (IOException e) {
-                            cancel();
-                        }
-
-                        nextSongURI = nextTemp.toURI();
-                        nextMediaPlayer = new MediaPlayer(new Media(nextSongURI.toString()));
-                        initMediaPlayer(nextMediaPlayer);
-                        return null;
-                    }
-                };
+            try {
+                File nextTemp = FileUtils.flacToWav(next.path());
+                nextURI = nextTemp.toURI();
+                if(nextMediaPlayer != null) nextMediaPlayer.dispose();
+                nextMediaPlayer = new MediaPlayer(new Media(nextURI.toString()));
+                initMediaPlayer(nextMediaPlayer);
+                logger.warn("Pre-loaded '{}' ", next.title());
+            } catch (IOException e) {
+                logger.warn("Failed to pre-load '{}' | {}", next.title(), e.getMessage());
             }
-        };
-
-        if(!skipCurrent) {
-            stop();
-            loadCurrentService.start();
-        }
-
-        if(nextSong != null) loadNextService.start();
+            return null;
+        });
     }
 
     public void initMediaPlayer(MediaPlayer mediaPlayer) {
@@ -148,7 +126,7 @@ public class PlaybackManager {
     public void disposeURI(URI uri) {
         if(uri == null) return;
 
-        File file = new File(uri);
+        var file = new File(uri);
         if(file.delete()) {
             logger.info("Disposed {}", uri);
         } else {
@@ -184,11 +162,13 @@ public class PlaybackManager {
         }
 
         currentMediaPlayer.dispose();
-        new File(currentSongURI).delete();
+        disposeURI(currentURI);
+
         currentMediaPlayer = nextMediaPlayer;
+        currentURI = nextURI;
         currentMediaPlayer.play();
 
-        currentSong = queueManager.getNextSong(true);
+        queueManager.getNextSong(true);
         load(false, true);
     }
 
@@ -197,9 +177,9 @@ public class PlaybackManager {
         logger.info("Playing previous...");
 
         currentMediaPlayer.dispose();
-        new File(currentSongURI).delete();
+        disposeURI(currentURI);
 
-        currentSong = queueManager.getPreviousSong(true);
+        queueManager.getPreviousSong(true);
         load(true, false);
     }
 
