@@ -18,9 +18,10 @@ public class FlacDecoder implements PCMProcessor {
     private WavWriter wav;
 
     public void flacToWav(String inPath, String outPath) {
-        try (FileInputStream is = new FileInputStream(inPath); FileOutputStream os = new FileOutputStream(outPath)) {
+        try (var is = new FileInputStream(inPath); var os = new FileOutputStream(outPath)) {
             wav = new WavWriter(os);
-            FLACDecoder flacDecoder = new FLACDecoder(is);
+
+            var flacDecoder = new FLACDecoder(is);
             flacDecoder.addPCMProcessor(this);
             flacDecoder.decode();
         } catch (IOException e) {
