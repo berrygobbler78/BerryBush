@@ -71,7 +71,7 @@ public class QueueManager {
     public void shuffle() {
         logger.info("Shuffling...");
 
-        ArrayList<Song> temp = new ArrayList<>(nextSongsQueue);
+        var temp = new ArrayList<>(nextSongsQueue);
         nextSongsQueue.clear();
         while(!temp.isEmpty()) nextSongsQueue.add(temp.remove(random.nextInt(temp.size())));
     }
@@ -90,8 +90,8 @@ public class QueueManager {
     }
 
     public void generateQueue(int index, List<Song> songs) {
-        int count = 0;
-        boolean add = false;
+        var count = 0;
+        var add = false;
 
         for(Song s : songs) {
             if(count == index) {
