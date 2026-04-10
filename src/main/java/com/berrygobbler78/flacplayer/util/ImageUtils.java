@@ -1,13 +1,12 @@
 package com.berrygobbler78.flacplayer.util;
 
-import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
-import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
+import com.berrygobbler78.flacplayer.util.records.RecordHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
+import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.scene.image.Image;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockDataPicture;
 import org.jaudiotagger.tag.flac.FlacTag;
@@ -33,22 +32,20 @@ public class ImageUtils {
         logger.info("Refreshing artist art...");
 
         if(force) deleteArt(false, true);
-        File dir = ResourceHandler.getResourceFile("cache/artist-art");
-
+        var dir = new File(ResourceHandler.getCache(), "artist-art");
+        
         for(Artist artist : RecordHandler.getArtistList()) {
-            File artistDir = new File(dir, FileUtils.makeFolderSafe(artist.name()));
-            if(!artistDir.exists()) {
-                artistDir.mkdirs();
-            }
+            var artistDir = new File(dir, FileUtils.makeFolderSafe(artist.title()));
+            markDirectory(artistDir);
 
-            File[] files = artistDir.listFiles(f -> f.getName().endsWith(".png") || f.getName().endsWith(".jpg"));
+            var files = artistDir.listFiles(f -> f.getName().endsWith(".png") || f.getName().endsWith(".jpg"));
             if(files == null || files.length == 0) continue;
 
             if(files.length > 1) {
-                logger.warn("More than one image found for artist '{}', using first one", artist.name());
+                logger.warn("More than one image found for artist '{}', using first found: {}", artist.title(), files[0].getAbsolutePath());
             }
 
-            BufferedImage image = bufferedImageFromPath(files[0].getAbsolutePath());
+            var image = bufferedImageFromPath(files[0].getAbsolutePath());
             if(image == null) continue;
 
             image = resizeBufferedImage(image, 600, 600);
@@ -57,7 +54,7 @@ public class ImageUtils {
             try {
                 ImageIO.write(image, "png", new File(artistDir, "art.png"));
             } catch (IOException e) {
-                logger.error("Failed to write image at '{}' : {}", files[0].getAbsolutePath(), e.getMessage());
+                logger.error("Failed to write artist cover at '{}' | {}", files[0].getAbsolutePath(), e.getMessage());
             }
         }
 
@@ -68,66 +65,59 @@ public class ImageUtils {
 
         if(force) deleteArt(true, false);
 
-        for(Artist artist : RecordHandler.getArtistList()) {
-            File dir = ResourceHandler.getResourceFile("cache/artist-art");
-            File artistDir = new File(dir, FileUtils.makeFolderSafe(artist.name()));
-            if(!artistDir.exists()) {
-                artistDir.mkdirs();
-            }
-        }
-
         for(Album album : RecordHandler.getAlbumList()) {
-            File dir = ResourceHandler.getResourceFile("cache/album-art");
-            File artistDir = new File(dir, FileUtils.makeFolderSafe(album.artist().name()));
-            if(!artistDir.exists()) {
-                artistDir.mkdirs();
-            }
+            var dir = new File(ResourceHandler.getCache(), "album-art");
+            var artistDir = new File(dir, FileUtils.makeFolderSafe(album.artist().title()));
+            markDirectory(artistDir);
 
-            File albumDir = new File(artistDir, FileUtils.makeFolderSafe(album.title()));
-            if(!albumDir.exists()) {
-                albumDir.mkdirs();
-            }
+            var albumDir = new File(artistDir, FileUtils.makeFolderSafe(album.title()));
+            markDirectory(albumDir);
 
-            File imageFile = new File(albumDir, "art.png");
+            var imageFile = new File(albumDir, "art.png");
 
             BufferedImage extractedArt;
 
             if(!imageFile.exists()) {
                 logger.error("No cover image files found at '{}', generating new image", album.artPath());
                 try {
-                    imageFile.createNewFile();
+                    if(imageFile.createNewFile()) logger.debug("Created new image file at '{}'", imageFile.getPath());
                 } catch (IOException e) {
-                    logger.error("Failed to create new image file at '{}' : {}", imageFile.getPath(), e.getMessage());
+                    logger.error("Failed to create new image file at '{}' | {}", imageFile.getPath(), e.getMessage());
                 }
 
                 try{
-                    extractedArt = bufferedImageFromSong(album.songs().getFirst().path());
-
-                    BufferedImage coverBufferedImage = resizeBufferedImage(extractedArt, 600, 600);
+                    extractedArt = bufferedImageFromSong(album.songs().getFirst());
+                    var coverBufferedImage = resizeBufferedImage(extractedArt, 600, 600);
                     ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", imageFile);
                 } catch (Exception e) {
-                    logger.error("Failed to write image at '{}' : {}", imageFile.getPath(), e.getMessage());
+                    logger.error("Failed to write album cover at '{}' | {}", imageFile.getPath(), e.getMessage());
                     continue;
                 }
 
-                logger.info("Generated cover image for '{}'", album.title());
+                logger.info("Generated album cover for '{}'", album.title());
             }
         }
 
         logger.info("Album art has been refreshed");
     }
 
+    public static void markDirectory(File file) {
+        if(!file.exists()) {
+            if ((file.mkdirs())) {
+                logger.debug("Directory '{}' created", file.getName());
+            } else {
+                logger.debug("Failed to create directory for '{}'", file.getName());
+            }
+        }
+    }
+
     public static void deleteArt(boolean album, boolean artist) {
         logger.info("Deleting art cache");
 
         if(artist) {
-            File dir = ResourceHandler.getResourceFile("cache/artist-art");
-            if(dir == null) {
-                logger.error("No artist art directory exists");
-                return;
-            }
+            var dir = new File(ResourceHandler.getCache(), "artist-art");
+            var files = dir.listFiles();
 
-            File[] files = dir.listFiles();
             if(files == null) return;
 
             for(File f : files) {
@@ -139,13 +129,9 @@ public class ImageUtils {
         }
 
         if(album) {
-            File dir = ResourceHandler.getResourceFile("cache/album-art");
-            if(dir == null) {
-                logger.error("No album art directory exists");
-                return;
-            }
+            var dir = new File(ResourceHandler.getCache(), "album-art");
+            var files = dir.listFiles();
 
-            File[] files = dir.listFiles();
             if(files == null) return;
 
             for(File f : files) {
@@ -160,11 +146,7 @@ public class ImageUtils {
     public static void refreshPlaylistArt() {
         logger.info("Refreshing playlist art...");
 
-        File playlistDir = ResourceHandler.getResourceFile("cache/playlist-art");
-        if(playlistDir == null || !playlistDir.isDirectory()) {
-            logger.error("Playlist directory does not exist or is not a directory '{}'", playlistDir.getAbsolutePath());
-            return;
-        }
+        var playlistDir = new File(ResourceHandler.getCache(), "playlist-art");
 
         // for(Playlist playlist : PlaylistDataHandler.getPlaylists()) {
         //     File playlistFolder = new File(playlistDir, playlist.getName().toLowerCase().replace(' ', '-').trim());
@@ -183,12 +165,12 @@ public class ImageUtils {
     }
 
     // This method is pretty slow, so try to use it as little as possible
-    public static BufferedImage bufferedImageFromSong(String songPath) throws Exception {
-        logger.debug("Getting image from '{}'", songPath);
-        AudioFile audioFile = AudioFileIO.read(new File(songPath));
-        FlacTag tag = (FlacTag) audioFile.getTag();
+    public static BufferedImage bufferedImageFromSong(Song song) throws Exception {
+        logger.debug("Getting image from song '{}'", song.title());
+        var audioFile = AudioFileIO.read(new File(song.path()));
+        var tag = (FlacTag) audioFile.getTag();
         if(tag == null || tag.getImages().isEmpty()) {
-            throw new IllegalStateException("No embedded cover art found for path: " + songPath);
+            throw new IllegalStateException("No embedded cover art found for path: " + song.path());
         }
 
         MetadataBlockDataPicture coverPicture = tag.getImages().getFirst();
@@ -196,22 +178,26 @@ public class ImageUtils {
     }
 
     public static Image pathToImage(String path) {
-        logger.debug("Getting image from '{}'", path);
-        try{
-            return new Image(ResourceHandler.getResourceURL(path).toString(), true);
-        } catch (NullPointerException e) {
-            logger.error("Failed to grab image : {}", e.getMessage());
-            return new Image(ResourceHandler.getResourceURL("graphics/warning.png").toString(), true);
+        if (path == null || path.isEmpty()) {
+            return null;
         }
+
+        File file = new File(path);
+        if (!file.exists()) {
+            logger.error("Image file not found at: {}", path);
+            return null;
+        }
+
+        return new Image(file.toURI().toString(), true);
     }
 
     public static BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius) {
         int w = image.getWidth();
         int h = image.getHeight();
 
-        BufferedImage output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        var output = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
-        Graphics2D g2 = output.createGraphics();
+        var g2 = output.createGraphics();
         g2.setComposite(AlphaComposite.Src);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.WHITE);
