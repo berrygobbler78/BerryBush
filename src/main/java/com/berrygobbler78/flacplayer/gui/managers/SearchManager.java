@@ -1,12 +1,11 @@
-package com.berrygobbler78.flacplayer;
+package com.berrygobbler78.flacplayer.gui.managers;
 
-import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
+import com.berrygobbler78.flacplayer.util.records.RecordHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -14,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class SearchManager {
     private final TextField searchBar;
@@ -31,11 +29,11 @@ public class SearchManager {
     public void generateSuggestions() {
         searchResults.clear();
 
-        Set<String> suggestions = new LinkedHashSet<>();
+        var suggestions = new LinkedHashSet<String>();
 
         for (Artist a : RecordHandler.getArtistList()) {
-            if (a != null && a.name() != null && !a.name().isBlank()) {
-                suggestions.add(a.name());
+            if (a != null && a.title() != null && !a.title().isBlank()) {
+                suggestions.add(a.title());
             }
         }
 
@@ -55,7 +53,7 @@ public class SearchManager {
     }
 
     private void installAutocomplete() {
-        searchBar.textProperty().addListener((obs, oldText, newText) -> {
+        searchBar.textProperty().addListener((_, _, newText) -> {
             if (newText == null || newText.isBlank()) {
                 suggestionsPopup.hide();
                 return;
@@ -73,15 +71,16 @@ public class SearchManager {
 
             suggestionsPopup.getItems().clear();
 
-            for (String suggestion : filtered) {
-                Label label = new Label(suggestion);
-                CustomMenuItem item = new CustomMenuItem(label, true);
+            for (var suggestion : filtered) {
+                var label = new Label(suggestion);
+                var item = new CustomMenuItem(label, true);
 
-                item.setOnAction(e -> {
+                item.setOnAction(_ -> {
                     searchBar.setText(suggestion);
                     searchBar.positionCaret(suggestion.length());
                     suggestionsPopup.hide();
                 });
+
                 suggestionsPopup.getItems().add(item);
             }
 
@@ -90,7 +89,7 @@ public class SearchManager {
             }
         });
 
-        searchBar.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+        searchBar.focusedProperty().addListener((_, _, isFocused) -> {
             if (!isFocused) {
                 suggestionsPopup.hide();
             }
