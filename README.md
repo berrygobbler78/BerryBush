@@ -6,7 +6,7 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 
 ![img.png](READMEIMAGE.png)
 
-## Instructions:
+## Instructions (Not-Up-To-Date):
 1. Set up a directory
 2. Run the app and select your base directory and username. You can change it later in the settings. If at any time the userdata is messed up, it will prompt you to pick a new directory and username.
 3. Playlists (Needs to be reimplemented)!
@@ -16,10 +16,13 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 
 
 ### FIXES BEFORE V1.0:
-- [ ] Polish volume control (Threading)
 - [ ] Fix UI resizing
 - [ ] Playlist art
+- [ ] Artist page
+- [ ] Search results page
 - [ ] Reimplement features lost during gui redo
+  - [ ] Music position slider
+  - [ ] Playlist creation
 - [ ] Multiple discs is unsupported
 
 ### ROADMAP
@@ -30,11 +33,9 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 - [ ] Edit file tagging (change image, name, artist, etc)
 - [ ] Home page
 - [ ] Change background picture
-- [ ] Artist pages
 - [ ] Playback speed
 - [ ] Support for other file types
 - [ ] Listening stats
-- [ ] Highlight active parent in treeview
 
 ### Completed  ✓
 - [x] Shuffling
@@ -42,9 +43,7 @@ Please report bugs as you see them, I will fix them ASAP. Also let me know of an
 - [x] Artist images
 - [x] Consolidate CSS theming
 - [x] Fix the window
-- [x] Search feature
 - [x] Setup wizard
-- [x] Playlists
 - [x] Switch to TOML data storage
 - [x] Fix MPRIS
 - [x] Add sorting for treeview
