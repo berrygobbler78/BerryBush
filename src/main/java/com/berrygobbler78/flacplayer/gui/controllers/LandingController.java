@@ -1,8 +1,8 @@
-package com.berrygobbler78.flacplayer.controllers;
+package com.berrygobbler78.flacplayer.gui.controllers;
 
 import com.berrygobbler78.flacplayer.App;
-import com.berrygobbler78.flacplayer.EffectsEngine;
-import com.berrygobbler78.flacplayer.util.ImageUtils;
+import com.berrygobbler78.flacplayer.gui.EffectsEngine;
+import com.berrygobbler78.flacplayer.gui.managers.TabManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -30,11 +30,9 @@ public class LandingController {
     @FXML
     private StackPane contentContainer;
 
-    private TabManager tabManager;
-
     @FXML
     private void initialize() {
-        tabManager = new TabManager(this, contentContainer, navigationBar, null, searchTab, null, null);
+        new TabManager(this, contentContainer, navigationBar, null, searchTab, null, null);
         setupBottomBar();
     }
 
@@ -56,10 +54,11 @@ public class LandingController {
     }
 
     public void setPaused(boolean paused) {
-        playPauseImageView.setImage(paused ? ImageUtils.pathToImage("graphics/playback/play.png") : ImageUtils.pathToImage("graphics/playback/pause.png"));
+        playPauseImageView.setImage(new Image(String.valueOf(paused ? App.class.getResource("graphics/playback/play.png") : App.class.getResource("graphics/playback/pause.png"))));
     }
 
     public void updateBottomBar(Image image, String title, String artist) {
+        logger.debug("Bottom bar updated to '{}' & '{}'", title, artist);
         currentArt.setImage(image);
         currentTitle.setText(title);
         currentArtist.setText(artist);
