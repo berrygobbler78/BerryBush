@@ -1,8 +1,8 @@
 package com.berrygobbler78.flacplayer.configuration;
 
 import com.berrygobbler78.flacplayer.util.FileUtils;
-import com.berrygobbler78.flacplayer.util.handlers.RecordHandler;
-import com.berrygobbler78.flacplayer.util.handlers.ResourceHandler;
+import com.berrygobbler78.flacplayer.util.records.RecordHandler;
+import com.berrygobbler78.flacplayer.util.ResourceHandler;
 import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
@@ -28,17 +28,12 @@ public class PlaylistDataHandler {
     public static void loadPlaylists() {
         logger.info("Loading playlists...");
 
-        File playlistDir = ResourceHandler.getResourceFile("cache/playlists");
-        if(playlistDir == null) {
-            logger.error("No playlist directory exists");
-            return;
-        }
+        var playlistDir = new File(ResourceHandler.getCache(), "playlists");
 
-        File[] playlistFileArray ;
-        playlistFileArray = playlistDir.listFiles(f -> f.getName().endsWith(".toml"));
+        File[] playlistFileArray = playlistDir.listFiles(f -> f.getName().endsWith(".toml"));
 
         if(playlistFileArray == null) {
-            logger.info("Playlist directory is empty, returning...");
+            logger.info("Playlist directory is empty");
             return;
         }
 
@@ -54,18 +49,18 @@ public class PlaylistDataHandler {
 
                 fileCfg.load();
 
-                setIfMissing(fileCfg, "name", "Unknown Title");
+                setIfMissing(fileCfg, "title", "Unknown Title");
                 setIfMissing(fileCfg, "user", "Unknown User");
                 setIfMissing(fileCfg, "art-path", "");
                 setIfMissing(fileCfg, "songs", new ArrayList<>());
 
-                String name = fileCfg.get("name");
+                String name = fileCfg.get("title");
                 String user = fileCfg.get("user");
                 String art = fileCfg.get("art");
                 List<String> songPaths = fileCfg.get("songs");
 
-                List<Song> songs = new ArrayList<>();
-                Map<String, Song> songMap = RecordHandler.getSongList()
+                var songs = new ArrayList<Song>();
+                var songMap = RecordHandler.getSongList()
                         .stream()
                         .collect(Collectors.toMap(Song::path, s -> s));
 
@@ -75,15 +70,15 @@ public class PlaylistDataHandler {
                         songs.add(s);
                     }
                 }
-                Playlist p = new Playlist(name, user, songs, art,null, null);
+                var playlist = new Playlist(name, user, songs, art,null, null);
 
-                PLAYLIST_CONFIG_MAP.put(p, fileCfg);
+                PLAYLIST_CONFIG_MAP.put(playlist, fileCfg);
 
                 fileCfg.save();
 
-                logger.info("Found playlist '{}' at path: {}", p.title(), file.getPath());
+                logger.info("Found playlist '{}' at path: {}", playlist.title(), file.getPath());
             } catch (IOException e) {
-                logger.error("Failed to get playlist at path : {} : {}", file.getPath(), e.getMessage());
+                logger.error("Failed to get playlist at path : {} | {}", file.getPath(), e.getMessage());
             }
         }
 
@@ -98,7 +93,7 @@ public class PlaylistDataHandler {
 
     public static void createPlaylist(String name, String author, List<Song> songs) {
         if(songs == null) songs = new ArrayList<>();
-        File file = new File(ResourceHandler.getResourceFile("cache/playlists"), FileUtils.makeFolderSafe(name) + ".toml");
+        var file = new File(new File(ResourceHandler.getCache(), "playlists"), FileUtils.makeFolderSafe(name) + ".toml");
         try {
             if(file.createNewFile()) logger.info("Created new playlist file at '{}'", file.getPath());
         } catch (IOException e) {
@@ -110,7 +105,7 @@ public class PlaylistDataHandler {
 
         try(CommentedFileConfig fileCfg = CommentedFileConfig.builder(file).build()) {
             fileCfg.load();
-            fileCfg.set("name", playlist.title());
+            fileCfg.set("title", playlist.title());
             fileCfg.set("user", playlist.author());
             fileCfg.set("songs", playlist.songs().stream().map(Song::path).toList());
             fileCfg.save();
@@ -128,7 +123,7 @@ public class PlaylistDataHandler {
     public static void save(Playlist playlist) {
         try(CommentedFileConfig fileCfg = CommentedFileConfig.builder(new File(playlist.path())).build()) {
             fileCfg.load();
-            fileCfg.set("name", playlist.title());
+            fileCfg.set("title", playlist.title());
             fileCfg.set("user", playlist.author());
             fileCfg.set("art", playlist.path());
             fileCfg.set("songs", playlist.songs().stream().map(Song::path).toList());
