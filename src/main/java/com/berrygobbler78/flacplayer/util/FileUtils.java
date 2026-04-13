@@ -48,17 +48,6 @@ public class FileUtils {
         }
     }
 
-    public static File flacToWav(String fileIn) throws IOException {
-        logger.debug("Starting decoding at {}", fileIn);
-        var tempFile = File.createTempFile("temp", ".wav", ResourceHandler.getCache());
-        tempFile.deleteOnExit();
-
-        new FlacDecoder().flacToWav(fileIn, tempFile.getAbsolutePath());
-        logger.debug("Finished decoding");
-
-        return tempFile;
-    }
-
     public static File fileChooser(Stage stage, String title, String directoryPath, String extensionDesc, String extension) {
         var dir = new File(directoryPath);
         if(!dir.exists() || !dir.isDirectory()) dir = new File(System.getProperty("user.home"));
