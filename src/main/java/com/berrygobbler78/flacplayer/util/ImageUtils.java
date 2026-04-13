@@ -1,5 +1,6 @@
 package com.berrygobbler78.flacplayer.util;
 
+import com.berrygobbler78.flacplayer.App;
 import com.berrygobbler78.flacplayer.util.records.RecordHandler;
 import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Artist;
@@ -23,7 +24,7 @@ import java.util.Optional;
 public class ImageUtils {
     private static final Logger logger = LogManager.getLogger();
 
-    private static final Image DEFAULT_COVER = new Image("graphics/warning.png", true);
+    private static final Image WARNING = new Image(App.class.getResource("graphics/warning.png").toString(), true);
 
     public static void refreshAllArt(boolean force) {
         refreshAlbumArt(force);
@@ -186,12 +187,12 @@ public class ImageUtils {
 
     public static Optional<Image> pathToImage(String path, boolean emptyOnMissing) {
         if (path == null || path.isEmpty())
-            return (emptyOnMissing ? Optional.empty() : Optional.of(new Image("graphics/warning.png", true)));
+            return (emptyOnMissing ? Optional.empty() : Optional.of(WARNING));
 
         File file = new File(path);
         if (!file.exists()) {
             logger.error("Image file not found at: {}", path);
-            return (emptyOnMissing ? Optional.empty() : Optional.of(new Image("graphics/warning.png", true)));
+            return (emptyOnMissing ? Optional.empty() : Optional.of(WARNING));
         }
 
         return Optional.of(new Image(file.toURI().toString(), true));
