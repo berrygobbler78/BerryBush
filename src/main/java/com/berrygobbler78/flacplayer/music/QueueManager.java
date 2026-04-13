@@ -5,9 +5,7 @@ import com.berrygobbler78.flacplayer.util.records.Song;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class QueueManager {
     private static final Logger logger = LogManager.getLogger(QueueManager.class);
@@ -60,12 +58,11 @@ public class QueueManager {
         userQueue.add(song);
     }
 
-    void clearQueues(boolean clearUserQueue) {
-        logger.info("Clearing queues... : userQueue? '{}'", clearUserQueue);
+    void clearQueues() {
+        logger.info("Clearing queues...");
 
         previousSongsQueue.clear();
         nextSongsQueue.clear();
-        if(clearUserQueue) userQueue.clear();
     }
 
     public void shuffle() {
@@ -79,7 +76,7 @@ public class QueueManager {
     // Queueing
 
     public void generateQueueAtIndex(int index) {
-        clearQueues(false);
+        clearQueues();
 
         switch (currentParentType) {
             case ALBUM -> generateQueue(index, currentAlbum.songs());
@@ -97,11 +94,12 @@ public class QueueManager {
             if(count == index) {
                 currentSong = s;
                 add = true;
-            } else if(add) {
-                nextSongsQueue.add(s);
-            } else {
-                previousSongsQueue.addFirst(s);
+                count++;
+                continue;
             }
+
+            if(add) nextSongsQueue.add(s);
+            else previousSongsQueue.addFirst(s);
             count++;
         }
 
@@ -113,17 +111,19 @@ public class QueueManager {
     }
 
     public void setCurrentSong(Song song) {
-        clearQueues(false);
+        clearQueues();
         currentSong = song;
     }
 
-    public Song getNextSong(boolean remove) {
-        if(repeatStatus == REPEAT_STATUS.REPEAT_ONE) return null;
+    public Optional<Song> getNextSong(boolean remove) {
+        if(repeatStatus == REPEAT_STATUS.REPEAT_ONE) return Optional.empty();
+        // User queue takes priority
         if(!userQueue.isEmpty() && remove) {
             currentSong = userQueue.getFirst();
-            return userQueue.removeFirst();
+            return Optional.of(userQueue.removeFirst());
         }
-        if(!userQueue.isEmpty()) return userQueue.getFirst();
+        if(!userQueue.isEmpty()) return Optional.of(userQueue.getFirst());
+
         if(repeatStatus == REPEAT_STATUS.REPEAT_ALL) {
             if(currentParentType == PARENT_TYPE.PLAYLIST) {
                 nextSongsQueue.addAll(currentPlaylist.songs());
@@ -131,22 +131,22 @@ public class QueueManager {
                 nextSongsQueue.addAll(currentAlbum.songs());
             }
         }
+
+        if(nextSongsQueue.isEmpty()) return Optional.empty();
         if(remove) {
             previousSongsQueue.addFirst(currentSong);
-            currentSong = nextSongsQueue.getFirst();
-            return nextSongsQueue.removeFirst();
+            currentSong = nextSongsQueue.removeFirst();
+            return Optional.of(currentSong);
         }
-        if(nextSongsQueue.isEmpty()) return null;
-        return nextSongsQueue.getFirst();
+        return Optional.of(nextSongsQueue.getFirst());
     }
 
-    public Song getPreviousSong(boolean remove) {
-        if(remove) {
-            nextSongsQueue.addFirst(currentSong);
-            currentSong = previousSongsQueue.getFirst();
-            return previousSongsQueue.removeFirst();
-        }
-        return previousSongsQueue.getFirst();
+    public Optional<Song> getPreviousSong(boolean remove) {
+        if(previousSongsQueue.isEmpty()) return Optional.empty();
+        if(!remove) return Optional.of(previousSongsQueue.getFirst());
+        nextSongsQueue.addFirst(currentSong);
+        currentSong = previousSongsQueue.removeFirst();
+        return Optional.of(currentSong);
     }
 
     // Repeat status control
@@ -198,7 +198,11 @@ public class QueueManager {
             shuffle();
         } else {
             shuffleStatus = SHUFFLE_STATUS.OFF;
-            generateQueueAtIndex(0);
+            switch (currentParentType) {
+                case ALBUM -> generateQueueAtIndex(currentSong.track() - 1);
+                case PLAYLIST -> generateQueueAtIndex(currentSong.track() - 1); //FIXME: Should be currentSong.index()
+            }
+
         }
     }
 }
