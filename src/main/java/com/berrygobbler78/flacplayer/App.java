@@ -37,10 +37,10 @@ public class App extends Application {
 
     private static MusicInterface musicInterface;
 
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(Thread.getAllStackTraces().size());
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Override
-    public void start(Stage stage) throws IOException, URISyntaxException {
+    public void start(Stage stage) throws IOException {
         java.util.logging.Logger.getLogger("org.jaudiotagger").setLevel(Level.SEVERE);
 
          currentOS = switch (System.getProperty("os.name")) {
@@ -48,7 +48,7 @@ public class App extends Application {
             case "Windows 10" -> OS.WINDOWS_10;
             case "Windows 11" -> OS.WINDOWS_11;
             case "Mac" -> OS.MAC;
-            default -> throw new IllegalStateException("Unexpected value: " + System.getProperty("os.title"));
+             default -> throw new IllegalStateException("Unexpected value: " + System.getProperty("os.name"));
          };
 
         ResourceHandler.initialize();
@@ -74,7 +74,10 @@ public class App extends Application {
         stage.setScene(scene);
         stage.getIcons().add(new Image(String.valueOf(App.class.getResource("graphics/berries.png"))));
         stage.show();
-        stage.setOnCloseRequest(_ -> executorService.shutdown());
+        stage.setOnCloseRequest(_ -> {
+            musicInterface.cleanUp();
+            executorService.shutdown();
+        });
 
 
         if(currentOS == OS.WINDOWS_11) {
@@ -86,7 +89,7 @@ public class App extends Application {
         logger.info("Stage created.");
     }
 
-    public static void submitTask(Callable<?> task) {
+    public static void submitTask(Runnable task) {
         executorService.submit(task);
     }
 
