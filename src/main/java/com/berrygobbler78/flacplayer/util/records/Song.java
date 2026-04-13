@@ -2,7 +2,7 @@ package com.berrygobbler78.flacplayer.util.records;
 
 import java.util.Objects;
 
-public record Song(String title, Album album, int track, int disc, String path) {
+public record Song(String title, Album album, short track, short disc, String path) {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
