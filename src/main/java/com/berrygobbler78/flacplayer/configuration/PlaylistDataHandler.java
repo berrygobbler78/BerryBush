@@ -28,7 +28,7 @@ public class PlaylistDataHandler {
     public static void loadPlaylists() {
         logger.info("Loading playlists...");
 
-        var playlistDir = new File(ResourceHandler.getCache(), "playlists");
+        var playlistDir = ResourceHandler.get(ResourceHandler.ResourceType.PLAYLISTS);
 
         File[] playlistFileArray = playlistDir.listFiles(f -> f.getName().endsWith(".toml"));
 
@@ -60,7 +60,7 @@ public class PlaylistDataHandler {
                 List<String> songPaths = fileCfg.get("songs");
 
                 var songs = new ArrayList<Song>();
-                var songMap = RecordHandler.getSongList()
+                var songMap = RecordHandler.getSongs()
                         .stream()
                         .collect(Collectors.toMap(Song::path, s -> s));
 
@@ -93,7 +93,8 @@ public class PlaylistDataHandler {
 
     public static void createPlaylist(String name, String author, List<Song> songs) {
         if(songs == null) songs = new ArrayList<>();
-        var file = new File(new File(ResourceHandler.getCache(), "playlists"), FileUtils.makeFolderSafe(name) + ".toml");
+        var file = new File(ResourceHandler.get(ResourceHandler.ResourceType.PLAYLISTS),
+                FileUtils.makeFolderSafe(name) + ".toml");
         try {
             if(file.createNewFile()) logger.info("Created new playlist file at '{}'", file.getPath());
         } catch (IOException e) {
