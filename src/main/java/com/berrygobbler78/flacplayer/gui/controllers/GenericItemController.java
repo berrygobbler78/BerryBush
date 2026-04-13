@@ -35,9 +35,9 @@ public class GenericItemController {
         title.setText(artist.title());
         subtitle.setText(artist.albums().size() + " albums");
         itemImage.setImage(
-                (ImageUtils.pathToImage(artist.artPath()) == null) ?
-                        ImageUtils.pathToImage(artist.albums().getFirst().artPath()) :
-                        ImageUtils.pathToImage(artist.artPath()));
+                (ImageUtils.pathToImage(artist.artPath(), true).isEmpty()) ?
+                        ImageUtils.pathToImage(artist.albums().getFirst().artPath(), false).orElse(null) :
+                        ImageUtils.pathToImage(artist.artPath(), false).orElse(null));
         itemImage.setFitHeight(200);
         itemImage.setFitWidth(200);
 
@@ -46,7 +46,7 @@ public class GenericItemController {
     public void setItemData(Album album) {
         title.setText(album.title());
         subtitle.setText(album.artist().title());
-        itemImage.setImage(ImageUtils.pathToImage(album.artPath()));
+        itemImage.setImage(ImageUtils.pathToImage(album.artPath(), false).orElse(null));
         itemImage.setFitHeight(200);
         itemImage.setFitWidth(200);
     }
@@ -54,7 +54,7 @@ public class GenericItemController {
     public void setItemData(Song song) {
         title.setText(song.title());
         subtitle.setText(song.album().artist().title());
-        itemImage.setImage(ImageUtils.pathToImage(song.album().artPath()));
+        itemImage.setImage(ImageUtils.pathToImage(song.album().artPath(), false).orElse(null));
         itemImage.setFitHeight(200);
         itemImage.setFitWidth(200);
     }
