@@ -18,6 +18,7 @@ public class SongItemController {
     private ImageView albumImageView, playButtonImageView;
 
     public void setup(Song song) {
+        container.setStyle("-fx-background-radius: 10"); // FIXME: Radius not being added
         container.hoverProperty().addListener((_, _, newValue) ->
                 Platform.runLater(() -> {
                     if (newValue) {
@@ -38,7 +39,7 @@ public class SongItemController {
 
         titleLabel.setText(song.title());
         artistLabel.setText(song.album().artist().title());
-        albumImageView.setImage(ImageUtils.pathToImage(song.album().artPath()));
+        albumImageView.setImage(ImageUtils.pathToImage(song.album().artPath(), false).orElse(null));
         albumImageView.setFitHeight(40);
         albumImageView.setFitWidth(40);
     }
