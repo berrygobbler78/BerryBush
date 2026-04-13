@@ -2,19 +2,24 @@ package com.berrygobbler78.flacplayer.music;
 
 import com.berrygobbler78.flacplayer.App;
 import io.github.selemba1000.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class MediaTransportHandler {
+    private static final Logger logger = LogManager.getLogger();
 
     private final JMTC jmtc;
     private String currentSong = "";
     private Path currentArtwork;
 
     public MediaTransportHandler(String playerName, String playerPath, PlaybackManager playbackManager, QueueManager queueManager) {
+
         jmtc = JMTC.getInstance(new JMTCSettings(playerName, playerPath));
         if(playbackManager == null) return;
 
@@ -54,12 +59,15 @@ public class MediaTransportHandler {
 
             if (coverArt != null && !songTitle.equals(currentSong)) {
                 currentSong = songTitle;
-
-                File temp = File.createTempFile("currentArt", ".tmp");
-                temp.deleteOnExit();
-
-                Files.copy(coverArt.toPath(), temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                currentArtwork = temp.toPath();
+                try {
+                    File temp = File.createTempFile("currentArt", ".tmp");
+                    temp.deleteOnExit();
+                    Files.copy(coverArt.toPath(), temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    currentArtwork = temp.toPath();
+                } catch (IOException e) {
+                    logger.error("Failed to copy cover art for '{}' | {}", songTitle, e.getMessage());
+                    return;
+                }
             }
 
             if (currentArtwork != null) {
@@ -78,8 +86,6 @@ public class MediaTransportHandler {
             ));
 
             jmtc.updateDisplay();
-
-            return null;
         });
     }
 

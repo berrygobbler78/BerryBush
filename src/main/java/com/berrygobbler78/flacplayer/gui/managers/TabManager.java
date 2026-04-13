@@ -20,6 +20,7 @@ import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class TabManager {
@@ -81,33 +82,35 @@ public class TabManager {
         App.submitTask(() -> {
             var loader = new FXMLLoader();
             loader.setLocation(App.class.getResource("fxml/albumPage.fxml"));
-            Node node = loader.load();
+            try {
+                Node node = loader.load();
+                AnchorPane.setTopAnchor(node, 0.0);
+                AnchorPane.setBottomAnchor(node, 0.0);
+                AnchorPane.setLeftAnchor(node, 0.0);
+                AnchorPane.setRightAnchor(node, 0.0);
 
-            AnchorPane.setTopAnchor(node, 0.0);
-            AnchorPane.setBottomAnchor(node, 0.0);
-            AnchorPane.setLeftAnchor(node, 0.0);
-            AnchorPane.setRightAnchor(node, 0.0);
+                var albumTab = new Tab();
+                albumTab.setContent(node);
+                albumTab.setClosable(true);
+                albumTab.setOnClosed(_ -> openAlbums.remove(album));
 
-            var albumTab = new Tab();
-            albumTab.setContent(node);
-            albumTab.setClosable(true);
-            albumTab.setOnClosed(_ -> openAlbums.remove(album));
+                var iv = new ImageView(ImageUtils.pathToImage(album.artPath(), false).orElse(null));
+                iv.setFitWidth(20);
+                iv.setFitHeight(20);
+                albumTab.setGraphic(iv);
 
-            var iv = new ImageView(ImageUtils.pathToImage(album.artPath()));
-            iv.setFitWidth(20);
-            iv.setFitHeight(20);
-            albumTab.setGraphic(iv);
+                AlbumPageController albumPageController = loader.getController();
+                albumPageController.setAlbum(album);
 
-            AlbumPageController albumPageController = loader.getController();
-            albumPageController.setAlbum(album);
+                Platform.runLater(() -> {
+                    tabPane.getTabs().add(albumTab);
+                    if(switchTo) tabPane.getSelectionModel().select(albumTab);
+                });
 
-            Platform.runLater(() -> {
-                tabPane.getTabs().add(albumTab);
-                if(switchTo) tabPane.getSelectionModel().select(albumTab);
-            });
-
-            openAlbums.put(album, albumTab);
-            return null;
+                openAlbums.put(album, albumTab);
+            } catch (IOException e) {
+                logger.error("Failed to load album page | {}", e.getMessage());
+            }
         });
     }
 }
