@@ -10,13 +10,15 @@ public class ResourceHandler {
     private static final Logger logger = LogManager.getLogger();
     private static File cacheDir;
 
+    public enum ResourceType { CACHE, ARTIST_ART, ALBUM_ART, PLAYLIST_ART, PLAYLISTS, TEMP }
+
     public static void initialize() throws NullPointerException {
         switch (App.getOS()) {
             case LINUX -> linuxSetup();
             case WINDOWS_10, WINDOWS_11 -> windowsSetup();
         }
 
-        checkIfDirPresent("artist-art", "album-art", "playlist-art", "playlists");
+        checkIfDirPresent("artist-art", "album-art", "playlist-art", "playlists", "temp");
     }
 
     public static void checkIfDirPresent(String... locations) {
@@ -49,7 +51,14 @@ public class ResourceHandler {
         cacheDir = new File(root, "BerryBush");
     }
 
-    public static File getCache() {
-        return cacheDir;
+    public static File get(ResourceType type) {
+        return switch (type) {
+            case CACHE -> cacheDir;
+            case ARTIST_ART -> new File(cacheDir, "artist-art");
+            case ALBUM_ART -> new File(cacheDir, "album-art");
+            case PLAYLIST_ART -> new File(cacheDir, "playlist-art");
+            case PLAYLISTS -> new File(cacheDir, "playlists");
+            case TEMP -> new File(cacheDir, "temp");
+        };
     }
 }
