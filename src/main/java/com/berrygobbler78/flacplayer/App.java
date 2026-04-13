@@ -1,7 +1,6 @@
 package com.berrygobbler78.flacplayer;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
@@ -75,8 +74,9 @@ public class App extends Application {
         stage.getIcons().add(new Image(String.valueOf(App.class.getResource("graphics/berries.png"))));
         stage.show();
         stage.setOnCloseRequest(_ -> {
+            logger.info("Closing...");
             musicInterface.cleanUp();
-            executorService.shutdown();
+            executorService.shutdownNow();
         });
 
 
