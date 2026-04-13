@@ -71,13 +71,17 @@ public final class MusicInterface {
 
     public void updateBottomBar(Song song) {
         controller.updateBottomBar(
-                ImageUtils.pathToImage(song.album().artPath()),
+                ImageUtils.pathToImage(song.album().artPath(), false).orElse(null),
                 song.title(),
                 song.album().artist().title());
     }
 
     public void updatePaused(boolean paused) {
         controller.setPaused(paused);
+    }
+
+    public void cleanUp() {
+        playbackManager.clearTempFiles();
     }
 
     public void updateJMTC() {
