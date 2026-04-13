@@ -18,9 +18,12 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 public class ImageUtils {
     private static final Logger logger = LogManager.getLogger();
+
+    private static final Image DEFAULT_COVER = new Image("graphics/warning.png", true);
 
     public static void refreshAllArt(boolean force) {
         refreshAlbumArt(force);
@@ -32,9 +35,9 @@ public class ImageUtils {
         logger.info("Refreshing artist art...");
 
         if(force) deleteArt(false, true);
-        var dir = new File(ResourceHandler.getCache(), "artist-art");
+        var dir = ResourceHandler.get(ResourceHandler.ResourceType.ARTIST_ART);
         
-        for(Artist artist : RecordHandler.getArtistList()) {
+        for(Artist artist : RecordHandler.getArtists()) {
             var artistDir = new File(dir, FileUtils.makeFolderSafe(artist.title()));
             markDirectory(artistDir);
 
@@ -45,8 +48,9 @@ public class ImageUtils {
                 logger.warn("More than one image found for artist '{}', using first found: {}", artist.title(), files[0].getAbsolutePath());
             }
 
-            var image = bufferedImageFromPath(files[0].getAbsolutePath());
-            if(image == null) continue;
+            var imageCheck = bufferedImageFromPath(files[0].getAbsolutePath());
+            if(imageCheck.isEmpty()) continue;
+            var image = imageCheck.get();
 
             image = resizeBufferedImage(image, 600, 600);
             image = makeRoundedCorner(image, 50);
@@ -65,8 +69,8 @@ public class ImageUtils {
 
         if(force) deleteArt(true, false);
 
-        for(Album album : RecordHandler.getAlbumList()) {
-            var dir = new File(ResourceHandler.getCache(), "album-art");
+        for(Album album : RecordHandler.getAlbums()) {
+            var dir = ResourceHandler.get(ResourceHandler.ResourceType.ALBUM_ART);
             var artistDir = new File(dir, FileUtils.makeFolderSafe(album.artist().title()));
             markDirectory(artistDir);
 
@@ -86,7 +90,9 @@ public class ImageUtils {
                 }
 
                 try{
-                    extractedArt = bufferedImageFromSong(album.songs().getFirst());
+                    Optional<BufferedImage> bufferedImageFromSong = bufferedImageFromSong(album.songs().getFirst());
+                    if(bufferedImageFromSong.isEmpty()) continue;
+                    extractedArt = bufferedImageFromSong.get();
                     var coverBufferedImage = resizeBufferedImage(extractedArt, 600, 600);
                     ImageIO.write(makeRoundedCorner(coverBufferedImage, 50), "png", imageFile);
                 } catch (Exception e) {
@@ -115,7 +121,7 @@ public class ImageUtils {
         logger.info("Deleting art cache");
 
         if(artist) {
-            var dir = new File(ResourceHandler.getCache(), "artist-art");
+            var dir = ResourceHandler.get(ResourceHandler.ResourceType.ARTIST_ART);
             var files = dir.listFiles();
 
             if(files == null) return;
@@ -129,7 +135,7 @@ public class ImageUtils {
         }
 
         if(album) {
-            var dir = new File(ResourceHandler.getCache(), "album-art");
+            var dir = ResourceHandler.get(ResourceHandler.ResourceType.ALBUM_ART);
             var files = dir.listFiles();
 
             if(files == null) return;
@@ -146,7 +152,7 @@ public class ImageUtils {
     public static void refreshPlaylistArt() {
         logger.info("Refreshing playlist art...");
 
-        var playlistDir = new File(ResourceHandler.getCache(), "playlist-art");
+        var playlistDir = ResourceHandler.get(ResourceHandler.ResourceType.PLAYLIST_ART);
 
         // for(Playlist playlist : PlaylistDataHandler.getPlaylists()) {
         //     File playlistFolder = new File(playlistDir, playlist.getName().toLowerCase().replace(' ', '-').trim());
@@ -165,30 +171,30 @@ public class ImageUtils {
     }
 
     // This method is pretty slow, so try to use it as little as possible
-    public static BufferedImage bufferedImageFromSong(Song song) throws Exception {
+    public static Optional<BufferedImage> bufferedImageFromSong(Song song) throws Exception {
         logger.debug("Getting image from song '{}'", song.title());
         var audioFile = AudioFileIO.read(new File(song.path()));
         var tag = (FlacTag) audioFile.getTag();
         if(tag == null || tag.getImages().isEmpty()) {
-            throw new IllegalStateException("No embedded cover art found for path: " + song.path());
+            logger.error("No embedded cover art found for path: {}", song.path());
+            return Optional.empty();
         }
 
         MetadataBlockDataPicture coverPicture = tag.getImages().getFirst();
-        return ImageIO.read(ImageIO.createImageInputStream(new ByteArrayInputStream(coverPicture.getImageData())));
+        return Optional.of(ImageIO.read(ImageIO.createImageInputStream(new ByteArrayInputStream(coverPicture.getImageData()))));
     }
 
-    public static Image pathToImage(String path) {
-        if (path == null || path.isEmpty()) {
-            return null;
-        }
+    public static Optional<Image> pathToImage(String path, boolean emptyOnMissing) {
+        if (path == null || path.isEmpty())
+            return (emptyOnMissing ? Optional.empty() : Optional.of(new Image("graphics/warning.png", true)));
 
         File file = new File(path);
         if (!file.exists()) {
             logger.error("Image file not found at: {}", path);
-            return null;
+            return (emptyOnMissing ? Optional.empty() : Optional.of(new Image("graphics/warning.png", true)));
         }
 
-        return new Image(file.toURI().toString(), true);
+        return Optional.of(new Image(file.toURI().toString(), true));
     }
 
     public static BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius) {
@@ -221,12 +227,12 @@ public class ImageUtils {
         return bi;
     }
 
-    public static BufferedImage bufferedImageFromPath(String path) {
+    public static Optional<BufferedImage> bufferedImageFromPath(String path) {
         try {
-            return ImageIO.read(new File(path));
+            return Optional.of(ImageIO.read(new File(path)));
         } catch (IOException e) {
             logger.error("Failed to read image from path: {}", path);
-            return null;
+            return Optional.empty();
         }
     }
 }
