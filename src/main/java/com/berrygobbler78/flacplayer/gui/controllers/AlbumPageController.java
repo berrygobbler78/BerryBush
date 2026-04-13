@@ -24,7 +24,7 @@ public class AlbumPageController {
     private VBox songList;
 
     public void setAlbum(Album album) {
-        image.setImage(ImageUtils.pathToImage(album.artPath()));
+        image.setImage(ImageUtils.pathToImage(album.artPath(), false).orElse(null));
         title.setText(album.title());
         artist.setText(album.artist().title());
         songList.getChildren().clear();
