@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -119,8 +120,7 @@ public class PlaybackManager {
 
     public void dispose(MediaPlayer mediaPlayer) {
         if(mediaPlayer == null) return;
-
-        var file = new File(mediaPlayer.getMedia().getSource());
+        var file = new File(URI.create(mediaPlayer.getMedia().getSource()));
         if(file.delete()) {
             logger.debug("Disposed {}", file.getName());
         } else {
@@ -202,7 +202,11 @@ public class PlaybackManager {
 
     public void clearTempFiles() {
         File[] tempFiles = ResourceHandler.get(ResourceHandler.ResourceType.TEMP).listFiles();
-        if(tempFiles == null) return;
+        if(tempFiles == null || tempFiles.length == 0) {
+            logger.info("Temp directory is empty");
+            return;
+        }
+
         for(File f : tempFiles) {
             if(f.delete()) {
                 logger.debug("Deleted temp file: {}", f.getName());
