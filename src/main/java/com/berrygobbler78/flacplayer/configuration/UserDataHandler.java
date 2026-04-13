@@ -32,7 +32,7 @@ public class UserDataHandler {
     public static void initialize() {
         logger.debug("Initializing {}", UserDataHandler.class.getName());
 
-        var configFile = new File(ResourceHandler.getCache(), "user-data.toml");
+        var configFile = new File(ResourceHandler.get(ResourceHandler.ResourceType.CACHE), "user-data.toml");
         if(!configFile.exists()) {
             try {
                 if(configFile.createNewFile()) logger.info("Created new user data config file");

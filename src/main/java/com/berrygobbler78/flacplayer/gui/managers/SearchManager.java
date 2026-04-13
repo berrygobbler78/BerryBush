@@ -31,19 +31,19 @@ public class SearchManager {
 
         var suggestions = new LinkedHashSet<String>();
 
-        for (Artist a : RecordHandler.getArtistList()) {
+        for (Artist a : RecordHandler.getArtists()) {
             if (a != null && a.title() != null && !a.title().isBlank()) {
                 suggestions.add(a.title());
             }
         }
 
-        for (Album a : RecordHandler.getAlbumList()) {
+        for (Album a : RecordHandler.getAlbums()) {
             if (a != null && a.title() != null && !a.title().isBlank()) {
                 suggestions.add(a.title());
             }
         }
 
-        for (Song s : RecordHandler.getSongList()) {
+        for (Song s : RecordHandler.getSongs()) {
             if (s != null && s.title() != null && !s.title().isBlank()) {
                 suggestions.add(s.title());
             }
@@ -84,15 +84,11 @@ public class SearchManager {
                 suggestionsPopup.getItems().add(item);
             }
 
-            if (!suggestionsPopup.isShowing()) {
-                suggestionsPopup.show(searchBar, Side.BOTTOM, 0, 0);
-            }
+            if (!suggestionsPopup.isShowing()) suggestionsPopup.show(searchBar, Side.BOTTOM, 0, 0);
         });
 
         searchBar.focusedProperty().addListener((_, _, isFocused) -> {
-            if (!isFocused) {
-                suggestionsPopup.hide();
-            }
+            if (!isFocused) suggestionsPopup.hide();
         });
     }
 }
