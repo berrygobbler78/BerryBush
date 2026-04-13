@@ -19,31 +19,30 @@ import java.util.stream.Stream;
 public class RecordHandler {
     private static final Logger logger = LogManager.getLogger();
 
-    private static final List<Artist> ARTIST_LIST = Collections.synchronizedList(new ArrayList<>());
-    private static final List<Album> ALBUM_LIST = Collections.synchronizedList(new ArrayList<>());
-    private static final List<Song> SONG_LIST = Collections.synchronizedList(new ArrayList<>());
-    private static final List<Playlist> PLAYLIST_LIST = Collections.synchronizedList(new ArrayList<>());
+    private static volatile List<Artist> ARTISTS = List.of();
+    private static volatile List<Album> ALBUMS = List.of();
+    private static volatile List<Song> SONGS = List.of();
+    private static volatile List<Playlist> PLAYLISTS = List.of();
 
-    public static List<Artist> getArtistList() {
-        return ARTIST_LIST;
+    public static List<Artist> getArtists() {
+        return ARTISTS;
     }
-    public static List<Album> getAlbumList() {
-        return ALBUM_LIST;
+    public static List<Album> getAlbums() {
+        return ALBUMS;
     }
-    public static List<Song> getSongList() {
-        return SONG_LIST;
+    public static List<Song> getSongs() {
+        return SONGS;
     }
-    public static List<Playlist> getPlaylistList() {
-        return PLAYLIST_LIST;
+    public static List<Playlist> getPlaylists() {
+        return PLAYLISTS;
     }
 
     public static void cache() {
         logger.info("Caching...");
 
-        ARTIST_LIST.clear();
-        ALBUM_LIST.clear();
-        SONG_LIST.clear();
-        PLAYLIST_LIST.clear();
+        var newArtists = new ArrayList<Artist>();
+        var newAlbums = new ArrayList<Album>();
+        var newSongs = new ArrayList<Song>();
 
         var rootDir = new File(UserDataHandler.getConfig(UserDataHandler.ConfigLocation.PATH));
         if(!rootDir.exists() || !rootDir.isDirectory()) {
@@ -61,8 +60,8 @@ public class RecordHandler {
 
                             if (tag == null) return;
 
-                            var songTitle = tag.getFirst(FieldKey.TITLE);
-                            songTitle = (songTitle == null || songTitle.isBlank()) ? "Unknown" : songTitle;
+                            var songStr = tag.getFirst(FieldKey.TITLE);
+                            songStr = (songStr == null || songStr.isBlank()) ? "Unknown" : songStr;
 
                             var albumStr = tag.getFirst(FieldKey.ALBUM);
                             albumStr = (albumStr == null || albumStr.isBlank()) ? "Unknown" : albumStr;
@@ -75,54 +74,45 @@ public class RecordHandler {
                                     .replaceAll("[,&/\\-].*", "")
                                     .trim();
 
-                            int track = 0;
+                            short track = 0;
                             String trackStr = tag.getFirst(FieldKey.TRACK);
                             if(trackStr != null) {
                                 trackStr = trackStr.split("/")[0].trim();
-                                track = trackStr.matches("\\d+") ? Integer.parseInt(trackStr) : 0;
+                                track = trackStr.matches("\\d+") ? (short) Integer.parseInt(trackStr) : 0;
                             }
 
-                            int disc;
+                            short disc;
                             String discStr = tag.getFirst(FieldKey.DISC_NO);
                             discStr = (discStr == null || discStr.isBlank()) ? "1" : discStr;
-                            disc = Integer.parseInt(discStr);
+                            disc = (short) Integer.parseInt(discStr);
 
-                            Artist artist = null;
-                            for(Artist a : ARTIST_LIST) {
-                                if (a.title().equals(artistStr)) {
-                                    artist = a;
-                                    break;
-                                }
-                            }
+                            String finalArtistStr = artistStr;
+                            Artist artist = newArtists.stream()
+                                    .filter(a -> a.title().equals(finalArtistStr))
+                                    .findFirst()
+                                    .orElse(null);
 
                             if(artist == null) {
-                                artist = new Artist(
-                                        artistStr,
-                                        new ArrayList<>(),
-                                        ResourceHandler.getCache().getPath() +
-                                                File.separator +
-                                                "artist-art" +
+                                artist = new Artist(artistStr, new ArrayList<>(),
+                                        ResourceHandler.get(ResourceHandler.ResourceType.ARTIST_ART).getPath() +
                                                 File.separator +
                                                 FileUtils.makeFolderSafe(artistStr) +
                                                 File.separator +
                                                 "art.png"
                                 );
 
-                                ARTIST_LIST.add(artist);
+                                newArtists.add(artist);
                             }
 
-                            Album album = null;
-                            for(Album a : artist.albums()) {
-                                if (a.title().equals(albumStr)) {
-                                    album = a;
-                                    break;
-                                }
-                            }
+                            String finalArtistStr1 = artistStr;
+                            String finalAlbumStr = albumStr;
+                            Album album = newAlbums.stream()
+                                    .filter(a -> a.artist().title().equals(finalArtistStr1) && a.title().equals(finalAlbumStr))
+                                    .findFirst()
+                                    .orElse(null);
 
                             if(album == null) {
-                                String cachePath = ResourceHandler.getCache().getPath() +
-                                        File.separator +
-                                        "album-art" +
+                                String cachePath = ResourceHandler.get(ResourceHandler.ResourceType.ALBUM_ART).getPath()+
                                         File.separator +
                                         FileUtils.makeFolderSafe(artistStr) +
                                         File.separator +
@@ -138,20 +128,18 @@ public class RecordHandler {
                                 );
 
                                 artist.albums().add(album);
-                                ALBUM_LIST.add(album);
+                                newAlbums.add(album);
                             }
 
-                            Song song = null;
-                            for(Song s : album.songs()) {
-                                if (s.title().equals(songTitle)) {
-                                    song = s;
-                                    break;
-                                }
-                            }
+                            String finalSongStr = songStr;
+                            Song song = newSongs.stream()
+                                    .filter(s -> s.album().title().equals(finalArtistStr) && s.title().equals(finalSongStr))
+                                    .findFirst()
+                                    .orElse(null);
 
                             if(song == null) {
                                 song = new Song(
-                                        songTitle,
+                                        songStr,
                                         album,
                                         track,
                                         disc,
@@ -159,25 +147,26 @@ public class RecordHandler {
                                 );
 
                                 album.songs().add(song);
-                                SONG_LIST.add(song);
+                                newSongs.add(song);
                             }
 
                             logger.debug("'{}' added to '{}' with artist '{}'", song.title(), album.title(), artist.title());
                         } catch (Exception e) {
-                            logger.error("Failed to read metadata from '{}'", path);
+                            logger.error("Failed to read metadata from '{}' | {}", path, e.getMessage());
                         }
                     });
         } catch (IOException e) {
             logger.error("Failed to traverse archive root | {}", e.getMessage());
         }
 
-        for(Album a : ALBUM_LIST) {
-            a.songs().sort(Comparator.comparingInt(Song::track));
-        }
+        ARTISTS = List.copyOf(newArtists);
+        ALBUMS = List.copyOf(newAlbums);
+        SONGS = List.copyOf(newSongs);
 
         PlaylistDataHandler.initialize();
+        PLAYLISTS = List.copyOf(PlaylistDataHandler.getPlaylists());
 
-        PLAYLIST_LIST.addAll(PlaylistDataHandler.getPlaylists());
+        for(Album a : ALBUMS) a.songs().sort(Comparator.comparingInt(Song::track));
 
         logger.info("Cache has been refreshed");
     }
