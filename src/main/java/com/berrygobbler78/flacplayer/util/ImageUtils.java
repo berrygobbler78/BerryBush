@@ -239,4 +239,9 @@ public class ImageUtils {
             return Optional.empty();
         }
     }
+
+    public static String getWarningURL() {
+        logger.debug("Using warning image as fallback");
+        return WARNING;
+    }
 }
