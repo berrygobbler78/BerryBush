@@ -42,6 +42,8 @@ public class MediaTransportHandler {
     }
 
     public void setEnabled(boolean enabled) {
+        if(jmtc == null) return;
+
         jmtc.setEnabled(enabled);
         jmtc.setEnabledButtons(new JMTCEnabledButtons(enabled, enabled, enabled, enabled, enabled));
         jmtc.updateDisplay();
@@ -51,7 +53,7 @@ public class MediaTransportHandler {
             String songTitle, String songArtist, String parentTitle, String parentArtist,
             int tracks, int index, File coverArt)
     {
-
+        if(jmtc == null) return;
         if(!jmtc.getEnabled()) setEnabled(true);
 
         App.submitTask(() -> {
@@ -90,11 +92,15 @@ public class MediaTransportHandler {
     }
 
     public void setTimeline(long start, long end, long seekStart, long seekEnd) {
+        if(jmtc == null) return;
+
         jmtc.setTimelineProperties(new JMTCTimelineProperties(start, end, seekStart, seekEnd));
         jmtc.updateDisplay();
     }
 
     public void setState(JMTCPlayingState state) {
+        if(jmtc == null) return;
+
         jmtc.setPlayingState(state);
         jmtc.updateDisplay();
     }
