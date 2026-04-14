@@ -24,25 +24,28 @@ public class RecordHandler {
     private static volatile List<Song> SONGS = List.of();
     private static volatile List<Playlist> PLAYLISTS = List.of();
 
+    private static final Object lock = new Object();
+
     public static List<Artist> getArtists() {
-        return ARTISTS;
+        synchronized (lock) { return ARTISTS; }
     }
     public static List<Album> getAlbums() {
-        return ALBUMS;
+        synchronized (lock) { return ALBUMS; }
     }
     public static List<Song> getSongs() {
-        return SONGS;
+        synchronized (lock) { return SONGS; }
     }
     public static List<Playlist> getPlaylists() {
-        return PLAYLISTS;
+        synchronized (lock) { return PLAYLISTS; }
     }
 
     public static void cache() {
         logger.info("Caching...");
 
-        var newArtists = new ArrayList<Artist>();
-        var newAlbums = new ArrayList<Album>();
-        var newSongs = new ArrayList<Song>();
+        synchronized (lock) {
+            var newArtists = new ArrayList<Artist>();
+            var newAlbums = new ArrayList<Album>();
+            var newSongs = new ArrayList<Song>();
 
         var rootDir = new File(UserDataHandler.getConfig(UserDataHandler.ConfigLocation.PATH));
         if(!rootDir.exists() || !rootDir.isDirectory()) {
