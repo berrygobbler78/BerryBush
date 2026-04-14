@@ -14,14 +14,13 @@ import java.nio.file.StandardCopyOption;
 public class MediaTransportHandler {
     private static final Logger logger = LogManager.getLogger();
 
-    private final JMTC jmtc;
+    private JMTC jmtc;
     private String currentSong = "";
     private Path currentArtwork;
 
     public MediaTransportHandler(String playerName, String playerPath, PlaybackManager playbackManager, QueueManager queueManager) {
-
-        jmtc = JMTC.getInstance(new JMTCSettings(playerName, playerPath));
         if(playbackManager == null) return;
+        jmtc = JMTC.getInstance(new JMTCSettings(playerName, playerPath));
 
         JMTCCallbacks callbacks = new JMTCCallbacks();
         callbacks.onPlay = playbackManager::play;
