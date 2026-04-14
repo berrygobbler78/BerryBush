@@ -181,7 +181,7 @@ public class PlaybackManager {
         } else {
             logger.info("Playing previous...");
 
-            dispose(currentMediaPlayer);
+            dispose(currentMediaPlayer, nextMediaPlayer);
 
             load(true, false);
         }
