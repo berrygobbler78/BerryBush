@@ -42,30 +42,30 @@ public class QueueManager {
 
     // Setting Parents
 
-    public void setAlbum(Album album) {
+    public synchronized void setAlbum(Album album) {
         logger.info("Music player album set to '{}'", album.title());
         currentAlbum = album;
         currentParentType = PARENT_TYPE.ALBUM;
     }
 
-    public void setPlaylist(Playlist playlist) {
+    public synchronized void setPlaylist(Playlist playlist) {
         logger.info("Music player playlist set to '{}'", playlist.title());
         currentPlaylist = playlist;
         currentParentType = PARENT_TYPE.PLAYLIST;
     }
 
-    public void addToUserQueue(Song song) {
+    public synchronized void addToUserQueue(Song song) {
         userQueue.add(song);
     }
 
-    void clearQueues() {
+    public synchronized void clearQueues() {
         logger.info("Clearing queues...");
 
         previousSongsQueue.clear();
         nextSongsQueue.clear();
     }
 
-    public void shuffle() {
+    public synchronized void shuffle() {
         logger.info("Shuffling...");
 
         var temp = new ArrayList<>(nextSongsQueue);
@@ -75,7 +75,7 @@ public class QueueManager {
 
     // Queueing
 
-    public void generateQueueAtIndex(int index) {
+    public synchronized void generateQueueAtIndex(int index) {
         clearQueues();
 
         switch (currentParentType) {
@@ -86,7 +86,7 @@ public class QueueManager {
         logger.info("Generated new parent queue : NextQueue '{}' : PreviousQueue '{}'", nextSongsQueue.size(), previousSongsQueue.size());
     }
 
-    public void generateQueue(int index, List<Song> songs) {
+    public synchronized void generateQueue(int index, List<Song> songs) {
         var count = 0;
         var add = false;
 
@@ -106,16 +106,16 @@ public class QueueManager {
         if(shuffleStatus == SHUFFLE_STATUS.SHUFFLE) shuffle();
     }
 
-    public Song getCurrentSong() {
+    public synchronized Song getCurrentSong() {
         return currentSong;
     }
 
-    public void setCurrentSong(Song song) {
+    public synchronized void setCurrentSong(Song song) {
         clearQueues();
         currentSong = song;
     }
 
-    public Optional<Song> getNextSong(boolean remove) {
+    public synchronized Optional<Song> getNextSong(boolean remove) {
         if(repeatStatus == REPEAT_STATUS.REPEAT_ONE) return Optional.empty();
         // User queue takes priority
         if(!userQueue.isEmpty() && remove) {
@@ -141,7 +141,7 @@ public class QueueManager {
         return Optional.of(nextSongsQueue.getFirst());
     }
 
-    public Optional<Song> getPreviousSong(boolean remove) {
+    public synchronized Optional<Song> getPreviousSong(boolean remove) {
         if(previousSongsQueue.isEmpty()) return Optional.empty();
         if(!remove) return Optional.of(previousSongsQueue.getFirst());
         nextSongsQueue.addFirst(currentSong);
@@ -151,7 +151,7 @@ public class QueueManager {
 
     // Repeat status control
 
-    public void cycleRepeatStatus() {
+    public synchronized void cycleRepeatStatus() {
         switch (repeatStatus) {
             case REPEAT_ONE:
                 repeatStatus = REPEAT_STATUS.OFF;
@@ -167,17 +167,17 @@ public class QueueManager {
         logger.info("Repeat set to '{}'", repeatStatus);
     }
 
-    public void setRepeatStatus(REPEAT_STATUS status) {
+    public synchronized void setRepeatStatus(REPEAT_STATUS status) {
         repeatStatus = status;
     }
 
-    public REPEAT_STATUS getRepeatStatus() {
+    public synchronized REPEAT_STATUS getRepeatStatus() {
         return repeatStatus;
     }
 
     // Shuffle status control
 
-    public void toggleShuffleStatus() {
+    public synchronized void toggleShuffleStatus() {
         switch (shuffleStatus) {
             case OFF ->   shuffleStatus = SHUFFLE_STATUS.SHUFFLE;
             case SHUFFLE ->   shuffleStatus = SHUFFLE_STATUS.OFF;
@@ -190,7 +190,7 @@ public class QueueManager {
         }
     }
 
-    public void setShuffleStatus(boolean shuffle) {
+    public synchronized void setShuffleStatus(boolean shuffle) {
         logger.info("Shuffle set to '{}'", (shuffle ? "ON" : "OFF"));
 
         if(shuffle) {
