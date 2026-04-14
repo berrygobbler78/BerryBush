@@ -50,6 +50,9 @@ public class ResourceHandler {
     public static void windowsSetup() {
         var root = new File(System.getenv("LOCALAPPDATA"));
         cacheDir = new File(root, "BerryBush");
+        if(!cacheDir.exists() || !cacheDir.isDirectory()) {
+            if(cacheDir.mkdirs()) logger.info("Created new Windows cache directory");
+        }
     }
 
     public static void macSetup() {
