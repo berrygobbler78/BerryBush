@@ -171,7 +171,11 @@ public class ImageUtils {
         logger.info("Playlist art has been refreshed.");
     }
 
-    // This method is pretty slow, so try to use it as little as possible
+
+    /**
+        This method is pretty slow, so try to use it as little as possible
+        @param song returns a buffered image from the song's embedded path
+    */
     public static Optional<BufferedImage> bufferedImageFromSong(Song song) throws Exception {
         logger.debug("Getting image from song '{}'", song.title());
         var audioFile = AudioFileIO.read(new File(song.path()));
