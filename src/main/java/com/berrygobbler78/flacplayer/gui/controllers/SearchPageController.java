@@ -107,7 +107,8 @@ public class SearchPageController {
                     var loader = new FXMLLoader();
                     loader.setLocation(App.class.getResource("fxml/genericItem.fxml"));
                     nodes[i] = loader.load();
-                    nodes[i].setOnMouseClicked(e -> tabManager.newAlbumPage(artist.albums().getFirst(), !e.isControlDown()));
+                    nodes[i].setOnMouseClicked(
+                            e -> tabManager.newAlbumPage(artist.albums().getFirst(), !e.isControlDown())); //FIXME: Replace with dedicated artist page
 
                     int finalI = i;
                     int finalRow = row;
