@@ -8,8 +8,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.tag.FieldKey;
 
 import java.io.*;
 
