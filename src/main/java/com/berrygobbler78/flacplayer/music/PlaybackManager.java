@@ -156,10 +156,13 @@ public class PlaybackManager {
             return;
         }
 
+        if(nextMediaPlayer == null) return;
+
         logger.info("Playing next...");
 
         dispose(currentMediaPlayer);
         currentMediaPlayer = nextMediaPlayer;
+        nextMediaPlayer = null;
 
         play();
 
