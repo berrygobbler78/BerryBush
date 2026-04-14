@@ -5,6 +5,7 @@ import com.berrygobbler78.flacplayer.util.records.Album;
 import com.berrygobbler78.flacplayer.util.records.Playlist;
 import com.berrygobbler78.flacplayer.util.records.Song;
 import io.github.selemba1000.JMTCPlayingState;
+import javafx.scene.image.Image;
 import javafx.scene.media.MediaPlayer;
 
 import java.io.File;
@@ -71,7 +72,7 @@ public final class MusicInterface {
 
     public void updateBottomBar(Song song) {
         controller.updateBottomBar(
-                ImageUtils.pathToImage(song.album().artPath(), false).orElse(null),
+                ImageUtils.pathToImage(song.album().artPath()).orElse(new Image(ImageUtils.getWarningURL())),
                 song.title(),
                 song.album().artist().title());
     }
