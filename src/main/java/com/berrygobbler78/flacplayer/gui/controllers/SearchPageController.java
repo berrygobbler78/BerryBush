@@ -16,6 +16,8 @@ import javafx.scene.layout.GridPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+
 public class SearchPageController {
     private static final Logger logger = LogManager.getLogger();
 
@@ -82,7 +84,7 @@ public class SearchPageController {
                         col++;
                     }
                     logger.debug("Album added '{}'", album.title());
-                } catch (Exception e) {
+                } catch (IOException e) {
                     logger.error("Failed to load album '{}' : {}", album.title(), e.getMessage());
                 }
             }
@@ -125,7 +127,7 @@ public class SearchPageController {
                         col++;
                     }
                     logger.debug("Artist added '{}'", artist.title());
-                } catch (Exception e) {
+                } catch (IOException e) {
                     logger.error("Failed to load artist '{}' | {}", artist.title(), e.getMessage());
                 }
             }
