@@ -44,10 +44,24 @@ public class App extends Application {
 
          currentOS = switch (System.getProperty("os.name")) {
             case "Linux" -> OS.LINUX;
-            case "Windows 10" -> OS.WINDOWS_10;
-            case "Windows 11" -> OS.WINDOWS_11;
+             case "Windows 10" -> {
+                 try {
+                     var process = Runtime.getRuntime().exec(
+                             "reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\" /v CurrentBuild"
+                     );
+                     var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                     String line;
+                     while ((line = reader.readLine()) != null) {
+                         if (line.contains("CurrentBuild")) {
+                             int build = Integer.parseInt(line.replaceAll("\\D", ""));
+                             yield (build >= 22000) ? OS.WINDOWS_11 : OS.WINDOWS_10;
+                         }
+                     }
+                 } catch (Exception ignored) {}
+                 yield OS.WINDOWS_10;
+             }
             case "Mac" -> OS.MAC;
-             default -> throw new IllegalStateException("Unexpected value: " + System.getProperty("os.name"));
+            default -> throw new IllegalStateException("Unexpected value: " + System.getProperty("os.name"));
          };
 
         ResourceHandler.initialize();
