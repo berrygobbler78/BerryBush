@@ -16,6 +16,7 @@ public class ResourceHandler {
         switch (App.getOS()) {
             case LINUX -> linuxSetup();
             case WINDOWS_10, WINDOWS_11 -> windowsSetup();
+            case MAC -> macSetup();
         }
 
         checkIfDirPresent("artist-art", "album-art", "playlist-art", "playlists", "temp");
@@ -49,6 +50,14 @@ public class ResourceHandler {
     public static void windowsSetup() {
         var root = new File(System.getenv("LOCALAPPDATA"));
         cacheDir = new File(root, "BerryBush");
+    }
+
+    public static void macSetup() {
+        var root = new File(System.getProperty("user.home"), "Library/Caches");
+        cacheDir = new File(root, "BerryBush");
+        if(!cacheDir.exists() || !cacheDir.isDirectory()) {
+            if(cacheDir.mkdirs()) logger.info("Created new Mac cache directory");
+        }
     }
 
     public static File get(ResourceType type) {
