@@ -6,6 +6,7 @@ import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 
@@ -39,7 +40,7 @@ public class SongItemController {
 
         titleLabel.setText(song.title());
         artistLabel.setText(song.album().artist().title());
-        albumImageView.setImage(ImageUtils.pathToImage(song.album().artPath(), false).orElse(null));
+        albumImageView.setImage(ImageUtils.pathToImage(song.album().artPath()).orElse(new Image(ImageUtils.getWarningURL())));
         albumImageView.setFitHeight(40);
         albumImageView.setFitWidth(40);
     }
