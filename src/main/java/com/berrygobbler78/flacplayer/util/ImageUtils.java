@@ -185,14 +185,13 @@ public class ImageUtils {
         return Optional.of(ImageIO.read(ImageIO.createImageInputStream(new ByteArrayInputStream(coverPicture.getImageData()))));
     }
 
-    public static Optional<Image> pathToImage(String path, boolean emptyOnMissing) {
-        if (path == null || path.isEmpty())
-            return (emptyOnMissing ? Optional.empty() : Optional.of(WARNING));
+    public static Optional<Image> pathToImage(String path) {
+        if (path == null || path.isEmpty()) return Optional.empty();
 
-        File file = new File(path);
+        var file = new File(path);
         if (!file.exists()) {
             logger.error("Image file not found at: {}", path);
-            return (emptyOnMissing ? Optional.empty() : Optional.of(WARNING));
+            return Optional.empty();
         }
 
         return Optional.of(new Image(file.toURI().toString(), true));
