@@ -95,7 +95,7 @@ public class TabManager {
                 albumTab.setClosable(true);
                 albumTab.setOnClosed(_ -> openAlbums.remove(album));
 
-                var iv = new ImageView(ImageUtils.pathToImage(album.artPath(), false).orElse(null));
+                var iv = new ImageView(ImageUtils.pathToImage(album.artPath()).orElse(new Image(ImageUtils.getWarningURL())));
                 iv.setFitWidth(20);
                 iv.setFitHeight(20);
                 albumTab.setGraphic(iv);
