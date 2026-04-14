@@ -32,22 +32,6 @@ public class FileUtils {
         }
     }
 
-    public static String getMetadataField(File song, FieldKey key) {
-        try {
-            var audioFile = AudioFileIO.read(song);
-            var tag = audioFile.getTag();
-
-            if (tag == null) return "Unknown";
-
-            String value = tag.getFirst(key);
-            return (value == null || value.isBlank()) ? "Unknown" : value;
-
-        } catch (Exception e) {
-            logger.error("Failed to read metadata for '{}' | {}", song.getPath(), e.getMessage());
-            return "Unknown";
-        }
-    }
-
     public static File fileChooser(Stage stage, String title, String directoryPath, String extensionDesc, String extension) {
         var dir = new File(directoryPath);
         if(!dir.exists() || !dir.isDirectory()) dir = new File(System.getProperty("user.home"));
