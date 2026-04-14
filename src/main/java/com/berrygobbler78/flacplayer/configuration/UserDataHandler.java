@@ -54,13 +54,7 @@ public class UserDataHandler {
     public static void generateDefaults() {
         logger.info("Generating defaults...");
 
-        // Need first time load
-        try {
-            fileConfig.load();
-        } catch (Exception e) {
-            logger.error("Error with creating config. Clearing... : {}", e.getMessage());
-            fileConfig.clear();
-        }
+        fileConfig.load();
 
         setIfMissing(USERNAME.get(), ".");
         setIfMissing(PATH.get(), "/");
