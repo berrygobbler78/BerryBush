@@ -24,21 +24,26 @@ public class SetupWizardController {
         pathResponse.setMaxHeight(10.0);
         pathResponse.setMaxWidth(300.0);
 
+        //noinspection ExtractMethodRecommender
         var directoryChooser = switch (App.getOS()) {
             case WINDOWS_11, WINDOWS_10 -> {
-                Button b = new Button();
+                var b = new Button();
                 b.setOnAction(_ -> pathResponse.setText(
                         FileUtils.openDirectoryChooser(stage, "Choose directory", "C://").getAbsolutePath()));
                 yield b;
             }
             case LINUX -> {
-                Button b = new Button();
+                var b = new Button();
                 b.setOnAction(_ -> pathResponse.setText(
                         FileUtils.openDirectoryChooser(stage, "Choose directory", "/home").getAbsolutePath()));
                 yield b;
             }
-
-            case MAC -> new Button();
+            case MAC -> {
+                var b = new Button();
+                b.setOnAction(_ -> pathResponse.setText(
+                        FileUtils.openDirectoryChooser(stage, "Choose directory", "/Users").getAbsolutePath()));
+                yield b;
+            }
         };
 
         directoryChooser.setText("Open Explorer");
