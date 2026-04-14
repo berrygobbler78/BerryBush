@@ -118,13 +118,15 @@ public class PlaybackManager {
         });
     }
 
-    public void dispose(MediaPlayer mediaPlayer) {
-        if(mediaPlayer == null) return;
-        var file = new File(URI.create(mediaPlayer.getMedia().getSource()));
-        if(file.delete()) {
-            logger.debug("Disposed {}", file.getName());
-        } else {
-            logger.error("Failed to dispose {}", file.getName());
+    public void dispose(MediaPlayer... mediaPlayers) {
+        for (var mp : mediaPlayers) {
+            if (mp == null) return;
+            var file = new File(URI.create(mp.getMedia().getSource()));
+            if (file.delete()) {
+                logger.debug("Disposed {}", file.getName());
+            } else {
+                logger.error("Failed to dispose {}", file.getName());
+            }
         }
     }
 
