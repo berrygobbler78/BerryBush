@@ -78,7 +78,7 @@ public class PlaybackManager {
                     nextMediaPlayer = new MediaPlayer(new Media(temp.get().toUri().toString()));
                     initMediaPlayer(nextMediaPlayer);
 
-                    logger.warn("Pre-loaded '{}' ", next.get().title());
+                    logger.info("Pre-loaded '{}' ", next.get().title());
                 } catch (IOException e) {
                     logger.warn("Failed to pre-load '{}' | {}", next.get().title(), e.getMessage());
                 }
