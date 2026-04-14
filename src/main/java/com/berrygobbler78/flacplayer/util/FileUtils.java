@@ -55,6 +55,7 @@ public class FileUtils {
             switch (App.getOS()) {
                 case LINUX -> Runtime.getRuntime().exec(new String[]{"xdg-open", path});
                 case WINDOWS_11 -> Runtime.getRuntime().exec(new String[]{"explorer.exe", "/select,", path});
+                case MAC -> Runtime.getRuntime().exec(new String[]{"open", "-R", path});
             }
         } catch (IOException e) {
             logger.error("Failed to open file explorer for '{}' : {}", path, e.getMessage());
