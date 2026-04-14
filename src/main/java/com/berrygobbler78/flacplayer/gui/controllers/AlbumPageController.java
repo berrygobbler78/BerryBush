@@ -7,11 +7,14 @@ import com.berrygobbler78.flacplayer.util.records.Song;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 
 public class AlbumPageController {
     private static final Logger logger = LogManager.getLogger();
@@ -24,7 +27,7 @@ public class AlbumPageController {
     private VBox songList;
 
     public void setAlbum(Album album) {
-        image.setImage(ImageUtils.pathToImage(album.artPath(), false).orElse(null));
+        image.setImage(ImageUtils.pathToImage(album.artPath()).orElse(new Image(ImageUtils.getWarningURL())));
         title.setText(album.title());
         artist.setText(album.artist().title());
         songList.getChildren().clear();
@@ -44,7 +47,7 @@ public class AlbumPageController {
 
                 SongItemController songItemController = loader.getController();
                 songItemController.setup(song);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 logger.error("Failed to add song {} | {}", song.title(), e.getMessage());
             }
         }
