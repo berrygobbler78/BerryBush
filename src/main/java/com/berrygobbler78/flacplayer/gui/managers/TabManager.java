@@ -13,6 +13,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
@@ -53,7 +54,7 @@ public class TabManager {
 
             SearchPageController searchPageController = loader.getController();
             searchPageController.setTabManager(this);
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Failed to load search page | {}", e.getMessage());
         }
 
