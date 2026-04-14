@@ -24,7 +24,7 @@ import java.util.Optional;
 public class ImageUtils {
     private static final Logger logger = LogManager.getLogger();
 
-    private static final Image WARNING = new Image(App.class.getResource("graphics/warning.png").toString(), true);
+    private static final String WARNING = App.class.getResource("graphics/warning.png").toString();
 
     public static void refreshAllArt(boolean force) {
         refreshAlbumArt(force);
