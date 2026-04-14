@@ -200,7 +200,10 @@ public class PlaybackManager {
         return currentMediaPlayer.getStatus();
     }
 
-    public void clearTempFiles() {
+    public void shutdown() {
+        if(currentMediaPlayer != null) dispose(currentMediaPlayer);
+        if(nextMediaPlayer != null) dispose(nextMediaPlayer);
+
         File[] tempFiles = ResourceHandler.get(ResourceHandler.ResourceType.TEMP).listFiles();
         if(tempFiles == null || tempFiles.length == 0) {
             logger.info("Temp directory is empty");

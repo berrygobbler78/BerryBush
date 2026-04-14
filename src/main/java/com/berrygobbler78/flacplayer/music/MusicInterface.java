@@ -82,7 +82,7 @@ public final class MusicInterface {
     }
 
     public void cleanUp() {
-        playbackManager.clearTempFiles();
+        playbackManager.shutdown();
     }
 
     public void updateJMTC() {
